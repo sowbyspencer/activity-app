@@ -2,11 +2,13 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
+    "module": "es2020", // Added to support dynamic imports
     "paths": {
       "@/*": [
         "./*"
       ]
-    }
+    },
+    "types": ["expo-image-picker"] // Added to resolve type declarations
   },
   "include": [
     "**/*.ts",

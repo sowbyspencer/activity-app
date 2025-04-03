@@ -48,3 +48,20 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+## Version History
+
+### v1.0.1
+
+- Added a "Version History" section to the README to track changes.
+
+### v1.0.0
+
+- Initial project setup using `create-expo-app`.
+- Implemented basic navigation and routing using Expo Router.
+- Added support for fetching activities and displaying them in a swipeable interface.
+- Integrated API services for activities, groups, and chats.
+- Created reusable UI components such as `CustomInput`, `CustomButton`, and `ProfileImage`.
+- Added support for user authentication and profile management.
+- Implemented group and chat functionality with real-time message fetching.
+- Included database schema and sample data for backend setup.

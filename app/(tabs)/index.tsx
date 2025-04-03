@@ -1,74 +1,216 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import React, { useRef, useState, useEffect, useCallback } from "react";
+import {
+  View,
+  Text,
+  Image,
+  Animated,
+  PanResponder,
+  Dimensions,
+  ActivityIndicator,
+  TouchableOpacity,
+} from "react-native";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { fetchActivities } from "@/api/activityService";
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+const SCREEN_WIDTH = Dimensions.get("window").width;
+const SCREEN_HEIGHT = Dimensions.get("window").height;
 
-export default function HomeScreen() {
+export default function ActivitySwiper() {
+  const colorScheme = useColorScheme();
+  const navigation = useNavigation();
+  const [activities, setActivities] = useState([]);
+  const [currentActivity, setCurrentActivity] = useState(0);
+  const [currentImage, setCurrentImage] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  // Animated values for swiping
+  const translateX = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(0)).current;
+
+  // Fetch data
+  useEffect(() => {
+    const loadActivities = async () => {
+      const data = await fetchActivities();
+      setActivities(data);
+      setLoading(false);
+    };
+    loadActivities();
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      translateX.setValue(0);
+      translateY.setValue(0);
+    }, [])
+  );
+
+  const TAP_THRESHOLD = 10; // Movement threshold to detect taps
+
+  const panResponder = PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => true,
+
+    onPanResponderMove: (_, gesture) => {
+      if (Math.abs(gesture.dx) > Math.abs(gesture.dy) * 1.5) {
+        translateX.setValue(gesture.dx);
+      } else if (Math.abs(gesture.dy) > Math.abs(gesture.dx) * 1.5) {
+        translateY.setValue(gesture.dy);
+      }
+    },
+
+    onPanResponderRelease: (_, gesture) => {
+      if (!activities.length) return;
+
+      // **Tap Detection**
+      if (
+        Math.abs(gesture.dx) < TAP_THRESHOLD &&
+        Math.abs(gesture.dy) < TAP_THRESHOLD
+      ) {
+        navigation.navigate("activityInfo", {
+          activity: activities[currentActivity],
+          image: activities[currentActivity]?.images[currentImage],
+        });
+        return;
+      }
+
+      // **LEFT / RIGHT** - Switch images
+      if (
+        Math.abs(gesture.dx) > Math.abs(gesture.dy) &&
+        Math.abs(gesture.dx) > 100
+      ) {
+        const nextImageIndex =
+          gesture.dx < 0
+            ? Math.min(
+                currentImage + 1,
+                activities[currentActivity].images.length - 1
+              )
+            : Math.max(currentImage - 1, 0);
+
+        Animated.timing(translateX, {
+          toValue: gesture.dx < 0 ? -SCREEN_WIDTH : SCREEN_WIDTH,
+          duration: 250,
+          useNativeDriver: true,
+        }).start(() => {
+          setCurrentImage(nextImageIndex);
+          translateX.setValue(0);
+        });
+
+        // **UP / DOWN** - Switch activity
+      } else if (Math.abs(gesture.dy) > 100) {
+        const nextActivityIndex = (currentActivity + 1) % activities.length;
+
+        Animated.timing(translateY, {
+          toValue: gesture.dy < 0 ? -SCREEN_HEIGHT : SCREEN_HEIGHT,
+          duration: 300,
+          useNativeDriver: true,
+        }).start(() => {
+          setCurrentActivity(nextActivityIndex);
+          setCurrentImage(0);
+          translateY.setValue(0);
+        });
+      } else {
+        Animated.spring(translateX, {
+          toValue: 0,
+          useNativeDriver: true,
+        }).start();
+        Animated.spring(translateY, {
+          toValue: 0,
+          useNativeDriver: true,
+        }).start();
+      }
+    },
+  });
+
+  if (loading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: colorScheme === "dark" ? "black" : "white",
+        }}
+      >
+        <ActivityIndicator size="large" color="blue" />
+        <Text style={{ color: colorScheme === "dark" ? "white" : "black" }}>
+          Loading Activities...
+        </Text>
+      </View>
+    );
+  }
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: colorScheme === "dark" ? "black" : "white",
+      }}
+    >
+      {/* Activity Card */}
+      <Animated.View
+        {...panResponder.panHandlers}
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          transform: [{ translateY }],
+        }}
+      >
+        {/* Header */}
+        <Animated.View
+          style={{
+            width: "100%",
+            height: 60,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: colorScheme === "dark" ? "#222" : "#f5f5f5",
+            transform: [
+              {
+                translateY: translateY.interpolate({
+                  inputRange: [-SCREEN_HEIGHT, 0, SCREEN_HEIGHT],
+                  outputRange: [-60, 0, 60],
+                }),
+              },
+            ],
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 20,
+              color: colorScheme === "dark" ? "white" : "black",
+              fontWeight: "bold",
+            }}
+          >
+            {activities[currentActivity]?.name}
+          </Text>
+        </Animated.View>
+
+        {/* Image Swiper */}
+        <TouchableOpacity activeOpacity={0.8}>
+          <Animated.View
+            style={{
+              width: SCREEN_WIDTH,
+              height: SCREEN_HEIGHT - 100,
+              alignItems: "center",
+              justifyContent: "center",
+              transform: [{ translateX }],
+            }}
+          >
+            <Image
+              key={`${currentActivity}-${currentImage}`}
+              source={{
+                uri: activities[currentActivity]?.images[currentImage],
+              }}
+              style={{
+                width: SCREEN_WIDTH,
+                height: "100%",
+                resizeMode: "cover",
+              }}
+            />
+          </Animated.View>
+        </TouchableOpacity>
+      </Animated.View>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});

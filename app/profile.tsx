@@ -97,21 +97,21 @@ export default function ProfileScreen() {
       )}
       {/* First Name Field */}
       <CustomInput
-        placeholder="First Name"
+        placeholder="First Name (Error)"
         value={form.firstName}
         onChangeText={(text) => setForm({ ...form, firstName: text })}
         editable={isEditing}
       />
       {/* Last Name Field */}
       <CustomInput
-        placeholder="Last Name"
+        placeholder="Last Name (Error)"
         value={form.lastName}
         onChangeText={(text) => setForm({ ...form, lastName: text })}
         editable={isEditing}
       />
       {/* Email Field */}
       <CustomInput
-        placeholder="Email"
+        placeholder="Email (Error)"
         value={form.email}
         onChangeText={(text) => setForm({ ...form, email: text })}
         editable={isEditing}

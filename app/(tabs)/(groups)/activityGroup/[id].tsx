@@ -25,6 +25,7 @@ export default function ActivityGroupScreen() {
   });
 
   useEffect(() => {
+    console.log("ActivityGroupScreen user_id:", user_id); // Log the user_id being used
     const loadActivityGroup = async () => {
       try {
         const data = await fetchActivityGroup(id as string, user_id as string);
@@ -101,7 +102,7 @@ export default function ActivityGroupScreen() {
           },
           ...activity.members,
         ]}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item, index) => `${item.id || "temp"}-${index}`} // Ensure unique keys by appending index
         renderItem={({ item }) => (
           <TouchableOpacity
             style={{
@@ -112,10 +113,20 @@ export default function ActivityGroupScreen() {
               borderBottomColor: colorScheme === "dark" ? "#555" : "#ddd",
             }}
             onPress={() => {
+              console.log("Navigating to ChatScreen with:", {
+                chat_id: item.chat_id || item.id,
+                user_id,
+              }); // Log the chat_id and user_id being passed
               if (item.chat_id && typeof item.chat_id === "number") {
-                router.push(`/chat/${item.chat_id}`);
+                router.push({
+                  pathname: `/chat/${item.chat_id}`,
+                  params: { user_id }, // Pass user_id as a parameter
+                });
               } else if (item.id && typeof item.id === "number") {
-                router.push(`/chat/${item.id}`);
+                router.push({
+                  pathname: `/chat/${item.id}`,
+                  params: { user_id }, // Pass user_id as a parameter
+                });
               }
             }}
           >

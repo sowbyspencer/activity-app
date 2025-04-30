@@ -17,7 +17,8 @@ import ChatMessage from "@/components/ChatMessage";
 
 export default function ChatScreen() {
   const colorScheme = useColorScheme();
-  const { id } = useLocalSearchParams();
+  const { id, user_id } = useLocalSearchParams(); // Retrieve user_id from parameters
+  console.log("ChatScreen user_id:", user_id); // Log the user_id being used
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [chatPartner, setChatPartner] = useState<string>("");
@@ -27,12 +28,14 @@ export default function ChatScreen() {
       const data = await fetchChatMessages(id as string);
       setMessages(data || []);
 
-      const partner = data.find((msg: any) => msg.user_id !== 1);
+      const partner = data.find(
+        (msg: any) => msg.user_id !== parseInt(user_id as string)
+      );
       if (partner) setChatPartner(partner.sender_name);
     };
 
     loadMessages();
-  }, [id]);
+  }, [id, user_id]); // Add user_id as a dependency
 
   const handleSendMessage = async () => {
     if (newMessage.trim() === "") return;
@@ -45,7 +48,7 @@ export default function ChatScreen() {
   };
 
   const renderMessage = ({ item }: any) => {
-    const isUser = item.user_id === 1;
+    const isUser = item.user_id === parseInt(user_id as string); // Use dynamic user_id
     return <ChatMessage item={item} isUser={isUser} />;
   };
 

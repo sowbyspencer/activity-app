@@ -10,6 +10,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import { StatusBar } from "react-native";
 import { useColorScheme } from "@/hooks/useColorScheme";
+import { AuthProvider } from "@/context/AuthContext";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -31,37 +32,42 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <StatusBar
-        backgroundColor={colorScheme === "dark" ? "black" : "transparent"}
-        barStyle={colorScheme === "dark" ? "light-content" : "dark-content"}
-      />
-      <Stack>
-        {/* Tabs (Main Screens) */}
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-
-        {/* Activity Info Screen with Custom Header */}
-        <Stack.Screen
-          name="activityInfo"
-          options={({ route }) => ({
-            title: route.params?.activity?.name || "Activity Info",
-            headerShown: true,
-            headerStyle: {
-              backgroundColor: colorScheme === "dark" ? "#222" : "#f5f5f5", // 🔹 Background matches main page
-            },
-            fontSize: 20,
-            color: colorScheme === "dark" ? "white" : "black",
-            fontWeight: "bold",
-            headerBackTitleVisible: false, // Hides the "Back" text
-            presentation: "transparentModal", // Prevents slide effect
-            animation: "fade", // Uses fade instead of slide
-          })}
+    <AuthProvider>
+      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+        <StatusBar
+          backgroundColor={colorScheme === "dark" ? "black" : "transparent"}
+          barStyle={colorScheme === "dark" ? "light-content" : "dark-content"}
         />
+        <Stack>
+          {/* Login Page (Initial Screen) */}
+          <Stack.Screen name="auth/login" options={{ headerShown: false }} />
 
-        {/* Not Found Screen */}
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+          {/* Tabs (Main Screens) */}
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+
+          {/* Activity Info Screen with Custom Header */}
+          <Stack.Screen
+            name="activityInfo"
+            options={({ route }) => ({
+              title: route.params?.activity?.name || "Activity Info",
+              headerShown: true,
+              headerStyle: {
+                backgroundColor: colorScheme === "dark" ? "#222" : "#f5f5f5", // 🔹 Background matches main page
+              },
+              fontSize: 20,
+              color: colorScheme === "dark" ? "white" : "black",
+              fontWeight: "bold",
+              headerBackTitleVisible: false, // Hides the "Back" text
+              presentation: "transparentModal", // Prevents slide effect
+              animation: "fade", // Uses fade instead of slide
+            })}
+          />
+
+          {/* Not Found Screen */}
+          <Stack.Screen name="+not-found" />
+        </Stack>
+        <StatusBar style="auto" />
+      </ThemeProvider>
+    </AuthProvider>
   );
 }

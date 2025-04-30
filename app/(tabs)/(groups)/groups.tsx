@@ -15,16 +15,16 @@ export default function GroupsScreen() {
   const colorScheme = useColorScheme();
   const router = useRouter();
   const [groups, setGroups] = useState([]);
+  const userId = 2; // Hardcoded userId value
 
   useEffect(() => {
     const fetchGroups = async () => {
-      const user_id = 1; // 🔹 Hardcoded for now, should come from auth context
-      const data = await fetchMatchedGroups(user_id);
+      const data = await fetchMatchedGroups(userId); // Use hardcoded userId
       setGroups(data || []);
     };
 
     fetchGroups();
-  }, []);
+  }, [userId]); // Add userId as a dependency
 
   return (
     <SafeAreaView
@@ -69,7 +69,7 @@ export default function GroupsScreen() {
             onPress={() =>
               router.push({
                 pathname: `/activityGroup/${item.activity_id}`,
-                params: { user_id: 1 }, // 🔹 Pass user_id in navigation
+                params: { user_id: userId }, // Pass user_id dynamically
               })
             }
           >

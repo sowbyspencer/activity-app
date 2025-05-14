@@ -1,6 +1,9 @@
 // config.ts
-const LOCAL_DEV_IP = "10.34.68.49:5000";
-// const LOCAL_DEV_IP = "activity-app-server.onrender.com";
-// Diff for repo update
+const USE_LIVE_SERVER = false; // set to true for live server
 
-export const API_URL = `http://${LOCAL_DEV_IP}`;
+const LOCAL_DEV_IP = "10.34.67.99:5000";
+const LIVE_SERVER = "activity-app-server.onrender.com";
+
+export const API_URL = USE_LIVE_SERVER
+    ? `https://${LIVE_SERVER}`
+    : `http://${LOCAL_DEV_IP}`;

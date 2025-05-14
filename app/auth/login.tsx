@@ -23,12 +23,20 @@ export default function LoginScreen() {
       });
       if (response.ok) {
         const data = await response.json();
-        console.log("Login API response:", data); // Log the API response
-        if (data.user_id) {
-          await AsyncStorage.setItem("userId", data.user_id); // Save userId to storage
-          setUserId(data.user_id); // Store user_id in AuthContext
+        console.log("[LOGIN] API response data:", data); // Log the API response
+        // Accept both user_id (number) and userId (string) from API
+        const userId =
+          data.user_id?.toString() ||
+          data.userId?.toString() ||
+          data.id?.toString();
+        console.log("[LOGIN] Extracted userId:", userId); // Log the extracted userId
+        if (userId) {
+          await AsyncStorage.setItem("userId", userId); // Save userId to storage
+          setUserId(userId); // Store userId in AuthContext
         } else {
-          console.warn("Login response does not contain user_id");
+          console.warn(
+            "[LOGIN] Login response does not contain user_id or userId"
+          );
         }
         Alert.alert("Login successful!", `Token: ${data.token}`);
       } else {

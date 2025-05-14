@@ -33,6 +33,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const saveUserId = async (id: string | null) => {
     console.log("saveUserId called with:", id); // Log the value passed to saveUserId
+    if (!id) {
+      console.trace("saveUserId called with undefined/null!"); // Print stack trace
+    }
     if (id) {
       console.log("AsyncStorage.setItem called with:", id); // Log the value being saved to AsyncStorage
       await AsyncStorage.setItem("userId", id);

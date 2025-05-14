@@ -15,7 +15,7 @@ export default function GroupsScreen() {
   const colorScheme = useColorScheme();
   const router = useRouter();
   const [groups, setGroups] = useState([]);
-  const userId = 2; // Hardcoded userId value
+  const userId = 1; // Hardcoded userId value
 
   useEffect(() => {
     const fetchGroups = async () => {

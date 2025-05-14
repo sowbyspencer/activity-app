@@ -56,36 +56,38 @@ export default function LoginScreen() {
       >
         Login
       </Text>
-      <CustomInput
-        placeholder="Email"
-        value={form.email}
-        onChangeText={(text) => setForm({ ...form, email: text })}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        style={{
-          marginBottom: 10,
-          borderWidth: 1,
-          borderColor: colorScheme === "dark" ? "#ffffff" : "#000000",
-          borderRadius: 8,
-          padding: 10,
-          color: colorScheme === "dark" ? "#ffffff" : "#000000",
-        }}
-      />
-      <CustomInput
-        placeholder="Password"
-        value={form.password}
-        onChangeText={(text) => setForm({ ...form, password: text })}
-        secureTextEntry
-        style={{
-          marginBottom: 20,
-          borderWidth: 1,
-          borderColor: colorScheme === "dark" ? "#ffffff" : "#000000",
-          borderRadius: 8,
-          padding: 10,
-          color: colorScheme === "dark" ? "#ffffff" : "#000000",
-        }}
-      />
-      <CustomButton title="Log In" onPress={handleLogin} />
+      <View style={{ width: 300 }}>
+        <CustomInput
+          placeholder="Email"
+          value={form.email}
+          onChangeText={(text: string) => setForm({ ...form, email: text })}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          style={{
+            marginBottom: 10,
+            borderWidth: 1,
+            borderColor: colorScheme === "dark" ? "#888" : "#888",
+            borderRadius: 8,
+            padding: 10,
+            color: colorScheme === "dark" ? "#fff" : "#000",
+          }}
+        />
+        <CustomInput
+          placeholder="Password"
+          value={form.password}
+          onChangeText={(text: string) => setForm({ ...form, password: text })}
+          secureTextEntry
+          style={{
+            marginBottom: 20,
+            borderWidth: 1,
+            borderColor: colorScheme === "dark" ? "#888" : "#888",
+            borderRadius: 8,
+            padding: 10,
+            color: colorScheme === "dark" ? "#fff" : "#000",
+          }}
+        />
+        <CustomButton title="Log In" onPress={handleLogin} color="#007AFF" />
+      </View>
     </View>
   );
 }

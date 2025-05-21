@@ -41,10 +41,6 @@ export default function RootLayout() {
         <Stack>
           {/* Login Page (Initial Screen) */}
           <Stack.Screen name="auth/login" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="auth/signup"
-            options={{ title: "Sign Up", headerShown: true }}
-          />
 
           {/* Tabs (Main Screens) */}
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -59,6 +55,7 @@ export default function RootLayout() {
                 backgroundColor: colorScheme === "dark" ? "#222" : "#f5f5f5", // 🔹 Background matches main page
               },
               fontSize: 20,
+              color: colorScheme === "dark" ? "white" : "black",
               fontWeight: "bold",
               headerBackTitleVisible: false, // Hides the "Back" text
               presentation: "transparentModal", // Prevents slide effect

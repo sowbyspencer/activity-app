@@ -87,11 +87,6 @@ export default function LoginScreen() {
           }}
         />
         <CustomButton title="Log In" onPress={handleLogin} color="#007AFF" />
-        <CustomButton
-          title="Don't have an account? Sign Up"
-          onPress={() => router.push("/auth/signup")}
-          color="#34C759"
-        />
       </View>
     </View>
   );

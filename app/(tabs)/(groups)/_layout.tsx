@@ -8,6 +8,14 @@ export default function GroupsLayout() {
         name="activityGroup/[id]"
         options={{ headerShown: true, title: "Activity Group" }}
       />
+      <Stack.Screen
+        name="chat/[id]"
+        options={({ route }) => ({
+          headerShown: true,
+          title:
+            route.params?.activityName || route.params?.chatPartner || "Chat",
+        })}
+      />
     </Stack>
   );
 }

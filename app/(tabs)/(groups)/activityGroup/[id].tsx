@@ -107,8 +107,12 @@ export default function ActivityGroupScreen() {
             lastMessage: activity.lastMessage || "No messages yet...",
             profile_image: activity.activity_image, // ✅ Use activity image
             chat_id: activity.chat_id, // Pass the group chat_id for the group chat row
+            activityName: activity.activity_name, // Pass activity name for group chat
           },
-          ...activity.members,
+          ...activity.members.map((member: any) => ({
+            ...member,
+            chatPartner: member.name, // Pass member name for direct chat
+          })),
         ]}
         keyExtractor={(item, index) => `${item.id || "temp"}-${index}`} // Ensure unique keys by appending index
         renderItem={({ item }) => (
@@ -124,7 +128,11 @@ export default function ActivityGroupScreen() {
               console.log("Navigating to chat with chat_id:", item.chat_id); // Log the chat_id being passed
               router.push({
                 pathname: "/chat/[id]",
-                params: { id: item.chat_id }, // Always use item.chat_id for navigation
+                params: {
+                  id: item.chat_id,
+                  activityName: item.activityName, // For group chat
+                  chatPartner: item.chatPartner, // For direct chat
+                },
               });
             }}
           >

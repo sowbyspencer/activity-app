@@ -10,16 +10,17 @@ import {
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { useRouter } from "expo-router";
 import { fetchMatchedGroups } from "@/api/groupService";
+import { useAuth } from "@/context/AuthContext";
 
 export default function GroupsScreen() {
   const colorScheme = useColorScheme();
   const router = useRouter();
+  const { userId } = useAuth(); // Use userId from AuthContext
   const [groups, setGroups] = useState([]);
-  const userId = 1; // Hardcoded userId value
 
   useEffect(() => {
     const fetchGroups = async () => {
-      const data = await fetchMatchedGroups(userId); // Use hardcoded userId
+      const data = await fetchMatchedGroups(Number(userId)); // Use stored userId
       setGroups(data || []);
     };
 
@@ -69,7 +70,6 @@ export default function GroupsScreen() {
             onPress={() =>
               router.push({
                 pathname: `/activityGroup/${item.activity_id}`,
-                params: { user_id: userId }, // Pass user_id dynamically
               })
             }
           >

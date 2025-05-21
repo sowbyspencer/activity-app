@@ -10,10 +10,12 @@ import {
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { fetchActivityGroup } from "@/api/activityGroupService";
+import { useAuth } from "@/context/AuthContext";
 
 export default function ActivityGroupScreen() {
   const colorScheme = useColorScheme();
-  const { id, user_id } = useLocalSearchParams(); // Get activity ID & user ID
+  const { id } = useLocalSearchParams(); // Only get activity group id from params
+  const { userId } = useAuth(); // Get userId from AuthContext
   const router = useRouter();
   const [activity, setActivity] = useState({
     activity_id: "",
@@ -25,10 +27,10 @@ export default function ActivityGroupScreen() {
   });
 
   useEffect(() => {
-    console.log("ActivityGroupScreen user_id:", user_id); // Log the user_id being used
+    console.log("ActivityGroupScreen userId:", userId); // Log the userId being used
     const loadActivityGroup = async () => {
       try {
-        const data = await fetchActivityGroup(id as string, user_id as string);
+        const data = await fetchActivityGroup(Number(id), Number(userId));
 
         // ✅ Ensure `members` is an array
         if (!Array.isArray(data.members)) {
@@ -36,7 +38,7 @@ export default function ActivityGroupScreen() {
         }
 
         // ✅ Ensure every member has a valid `id`
-        data.members = data.members.map((member, index) => ({
+        data.members = data.members.map((member: any, index: number) => ({
           id: member.id || `temp-${index}`, // Temporary ID if missing
           name: member.name || "Unknown User",
           profile_image: member.profile_image || null,
@@ -51,7 +53,7 @@ export default function ActivityGroupScreen() {
     };
 
     loadActivityGroup();
-  }, [id, user_id]);
+  }, [id, userId]);
 
   return (
     <SafeAreaView
@@ -62,7 +64,12 @@ export default function ActivityGroupScreen() {
     >
       {/* Activity Group Image & Name */}
       <TouchableOpacity
-        onPress={() => router.push(`/activity/${activity.activity_id}`)} // ✅ Navigate to Activity Details
+        onPress={() =>
+          router.push({
+            pathname: "/activityInfo",
+            params: { id: activity.activity_id },
+          })
+        }
         style={{ alignItems: "center", paddingVertical: 15 }}
       >
         {activity.activity_image ? (
@@ -99,6 +106,7 @@ export default function ActivityGroupScreen() {
             name: "Group Chat",
             lastMessage: activity.lastMessage || "No messages yet...",
             profile_image: activity.activity_image, // ✅ Use activity image
+            chat_id: activity.chat_id, // Pass the group chat_id for the group chat row
           },
           ...activity.members,
         ]}
@@ -113,21 +121,11 @@ export default function ActivityGroupScreen() {
               borderBottomColor: colorScheme === "dark" ? "#555" : "#ddd",
             }}
             onPress={() => {
-              console.log("Navigating to ChatScreen with:", {
-                chat_id: item.chat_id || item.id,
-                user_id,
-              }); // Log the chat_id and user_id being passed
-              if (item.chat_id && typeof item.chat_id === "number") {
-                router.push({
-                  pathname: `/chat/${item.chat_id}`,
-                  params: { user_id }, // Pass user_id as a parameter
-                });
-              } else if (item.id && typeof item.id === "number") {
-                router.push({
-                  pathname: `/chat/${item.id}`,
-                  params: { user_id }, // Pass user_id as a parameter
-                });
-              }
+              console.log("Navigating to chat with chat_id:", item.chat_id); // Log the chat_id being passed
+              router.push({
+                pathname: "/chat/[id]",
+                params: { id: item.chat_id }, // Always use item.chat_id for navigation
+              });
             }}
           >
             <View style={{ flexDirection: "row", alignItems: "center" }}>

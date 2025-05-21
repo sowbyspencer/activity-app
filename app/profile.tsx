@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Button, View } from "react-native"; // Keep Button for specific cases
 import { fetchUserProfile, updateUserProfile } from "@/api/userService";
-import { useLocalSearchParams } from "expo-router";
+import { useAuth } from "@/context/AuthContext";
 import * as ImagePicker from "expo-image-picker";
 import CustomInput from "@/components/ui/CustomInput";
 import CustomButton from "@/components/ui/CustomButton";
@@ -9,7 +9,7 @@ import ProfileImage from "@/components/ui/ProfileImage";
 import FormWrapper from "@/components/ui/FormWrapper";
 
 export default function ProfileScreen() {
-  const { userId } = useLocalSearchParams();
+  const { userId } = useAuth();
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",

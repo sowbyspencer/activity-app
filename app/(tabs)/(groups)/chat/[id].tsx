@@ -14,11 +14,12 @@ import { useLocalSearchParams } from "expo-router";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { fetchChatMessages, sendMessage } from "@/api/chatService";
 import ChatMessage from "@/components/ChatMessage";
+import { useAuth } from "@/context/AuthContext";
 
 export default function ChatScreen() {
   const colorScheme = useColorScheme();
-  const { id, user_id } = useLocalSearchParams(); // Retrieve user_id from parameters
-  console.log("ChatScreen user_id:", user_id); // Log the user_id being used
+  const { id } = useLocalSearchParams(); // Only get chat id from params
+  const { userId } = useAuth(); // Use userId from AuthContext
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [chatPartner, setChatPartner] = useState<string>("");
@@ -29,13 +30,13 @@ export default function ChatScreen() {
       setMessages(data || []);
 
       const partner = data.find(
-        (msg: any) => msg.user_id !== parseInt(user_id as string)
+        (msg: any) => msg.user_id !== parseInt(userId as string)
       );
       if (partner) setChatPartner(partner.sender_name);
     };
 
     loadMessages();
-  }, [id, user_id]); // Add user_id as a dependency
+  }, [id, userId]); // Use userId as dependency
 
   const handleSendMessage = async () => {
     if (newMessage.trim() === "") return;
@@ -48,7 +49,7 @@ export default function ChatScreen() {
   };
 
   const renderMessage = ({ item }: any) => {
-    const isUser = item.user_id === parseInt(user_id as string); // Use dynamic user_id
+    const isUser = item.user_id === parseInt(userId as string); // Use userId from AuthContext
     return <ChatMessage item={item} isUser={isUser} />;
   };
 

@@ -45,6 +45,18 @@ export default function RootLayout() {
           {/* Tabs (Main Screens) */}
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
 
+          {/* Profile Screen with Custom Header */}
+          <Stack.Screen
+            name="profile"
+            options={{ headerShown: true, title: "My Profile" }}
+          />
+
+          {/* My Activities Screen with Custom Header */}
+          <Stack.Screen
+            name="activity/myActivities"
+            options={{ headerShown: true, title: "My Activities" }}
+          />
+
           {/* Activity Info Screen with Custom Header */}
           <Stack.Screen
             name="activityInfo"

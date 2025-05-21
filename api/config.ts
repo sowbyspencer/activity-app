@@ -1,7 +1,7 @@
 // config.ts
 const USE_LIVE_SERVER = false; // set to true for live server
 
-const LOCAL_DEV_IP = "10.34.67.99:5000";
+const LOCAL_DEV_IP = "10.34.70.149:5000";
 const LIVE_SERVER = "activity-app-server.onrender.com";
 
 export const API_URL = USE_LIVE_SERVER

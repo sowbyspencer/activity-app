@@ -38,7 +38,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
     if (id) {
       console.log("AsyncStorage.setItem called with:", id); // Log the value being saved to AsyncStorage
-      await AsyncStorage.setItem("userId", id);
+      await AsyncStorage.setItem("userId", String(id)); // Always store as string
     } else {
       await AsyncStorage.removeItem("userId");
     }

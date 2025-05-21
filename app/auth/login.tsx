@@ -25,7 +25,8 @@ export default function LoginScreen() {
       });
       if (response.ok) {
         const data = await response.json();
-        setUserId(data.id); // Set the userId in AuthContext
+        console.log("Login response data:", data); // Log the full response
+        setUserId(data.user_id); // Use the correct property from your API
         Alert.alert("Login successful!", "Navigating to the main app.");
         router.push("/(tabs)");
       } else {
@@ -87,6 +88,11 @@ export default function LoginScreen() {
           }}
         />
         <CustomButton title="Log In" onPress={handleLogin} color="#007AFF" />
+        <CustomButton
+          title="Don't have an account? Sign Up"
+          onPress={() => router.push("/auth/signup")}
+          color="#34C759"
+        />
       </View>
     </View>
   );

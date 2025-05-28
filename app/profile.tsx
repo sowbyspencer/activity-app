@@ -9,7 +9,7 @@ import ProfileImage from "@/components/ui/ProfileImage";
 import FormWrapper from "@/components/ui/FormWrapper";
 
 export default function ProfileScreen() {
-  const { userId } = useAuth();
+  const { userId, setUserId } = useAuth();
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -163,88 +163,59 @@ export default function ProfileScreen() {
   };
 
   return (
-    <FormWrapper>
-      {/* Profile Image */}
-      <View style={{ alignItems: "center", marginBottom: 20 }}>
-        <ProfileImage uri={form.profileImage} size={200} />
-      </View>
-      {isEditing && (
-        <CustomButton
-          title="Change Profile Image"
-          onPress={handleImageChange}
-          color="#007AFF"
-        />
-      )}
-      {/* First Name Field */}
-      <CustomInput
-        placeholder="First Name"
-        value={form.firstName}
-        onChangeText={(text: string) => setForm({ ...form, firstName: text })}
-        editable={isEditing}
-        error={firstNameError}
-      />
-      {/* Last Name Field */}
-      <CustomInput
-        placeholder="Last Name"
-        value={form.lastName}
-        onChangeText={(text: string) => setForm({ ...form, lastName: text })}
-        editable={isEditing}
-        error={lastNameError}
-      />
-      {/* Email Field */}
-      <CustomInput
-        placeholder="Email"
-        value={form.email}
-        onChangeText={(text: string) => setForm({ ...form, email: text })}
-        editable={isEditing}
-        keyboardType="email-address"
-        error={emailError}
-      />
-      {/* Update Profile Button */}
-      <CustomButton
-        title={isEditing ? "Save Profile" : "Update Profile"}
-        onPress={handleUpdate}
-        color="#007AFF"
-      />
-      {/* Update Password Button */}
-      {isEditing && !showPasswordFields && (
-        <CustomButton
-          title="Update Password"
-          onPress={() => setShowPasswordFields(true)}
-          color="#FF5733"
-        />
-      )}
-      {isEditing && showPasswordFields && (
-        <>
-          <CustomInput
-            placeholder="Current Password"
-            value={currentPassword}
-            onChangeText={setCurrentPassword}
-            secureTextEntry
-            error={currentPasswordError}
-          />
-          <CustomInput
-            placeholder="New Password"
-            value={newPassword}
-            onChangeText={setNewPassword}
-            secureTextEntry
-            error={newPasswordError}
-          />
-          <CustomInput
-            placeholder="Confirm New Password"
-            value={confirmNewPassword}
-            onChangeText={setConfirmNewPassword}
-            secureTextEntry
-            error={confirmNewPasswordError}
-          />
+    <>
+      <FormWrapper>
+        {/* Profile Image */}
+        <View style={{ alignItems: "center", marginBottom: 20 }}>
+          <ProfileImage uri={form.profileImage} size={200} />
+        </View>
+        {isEditing && (
           <CustomButton
-            title="Save Password"
-            onPress={handlePasswordUpdate}
+            title="Change Profile Image"
+            onPress={handleImageChange}
             color="#007AFF"
           />
+        )}
+        {/* First Name Field */}
+        <CustomInput
+          placeholder="First Name"
+          value={form.firstName}
+          onChangeText={(text: string) => setForm({ ...form, firstName: text })}
+          editable={isEditing}
+          error={firstNameError}
+        />
+        {/* Last Name Field */}
+        <CustomInput
+          placeholder="Last Name"
+          value={form.lastName}
+          onChangeText={(text: string) => setForm({ ...form, lastName: text })}
+          editable={isEditing}
+          error={lastNameError}
+        />
+        {/* Email Field */}
+        <CustomInput
+          placeholder="Email"
+          value={form.email}
+          onChangeText={(text: string) => setForm({ ...form, email: text })}
+          editable={isEditing}
+          keyboardType="email-address"
+          error={emailError}
+        />
+        {/* Update Profile Button */}
+        <CustomButton
+          title={isEditing ? "Save Profile" : "Update Profile"}
+          onPress={handleUpdate}
+          color="#007AFF"
+        />
+        {/* Cancel Edit Button: always visible when editing, even if password fields are shown */}
+        {isEditing && (
           <CustomButton
-            title="Cancel"
+            title="Cancel Profile Update"
             onPress={() => {
+              setIsEditing(false);
+              setFirstNameError("");
+              setLastNameError("");
+              setEmailError("");
               setShowPasswordFields(false);
               setCurrentPassword("");
               setNewPassword("");
@@ -252,11 +223,86 @@ export default function ProfileScreen() {
               setCurrentPasswordError("");
               setNewPasswordError("");
               setConfirmNewPasswordError("");
+              // Optionally reset form to original values by reloading profile
+              if (userId) {
+                fetchUserProfile(Number(userId)).then((userProfile) => {
+                  if (userProfile) {
+                    setForm({
+                      firstName: userProfile.firstName,
+                      lastName: userProfile.lastName,
+                      email: userProfile.email,
+                      profileImage:
+                        userProfile.profileImage ||
+                        "https://via.placeholder.com/150",
+                    });
+                  }
+                });
+              }
             }}
             color="#888"
           />
-        </>
-      )}
-    </FormWrapper>
+        )}
+        {/* Update Password Button */}
+        {isEditing && !showPasswordFields && (
+          <CustomButton
+            title="Update Password"
+            onPress={() => setShowPasswordFields(true)}
+            color="#FF5733"
+          />
+        )}
+        {isEditing && showPasswordFields && (
+          <>
+            <CustomInput
+              placeholder="Current Password"
+              value={currentPassword}
+              onChangeText={setCurrentPassword}
+              secureTextEntry
+              error={currentPasswordError}
+            />
+            <CustomInput
+              placeholder="New Password"
+              value={newPassword}
+              onChangeText={setNewPassword}
+              secureTextEntry
+              error={newPasswordError}
+            />
+            <CustomInput
+              placeholder="Confirm New Password"
+              value={confirmNewPassword}
+              onChangeText={setConfirmNewPassword}
+              secureTextEntry
+              error={confirmNewPasswordError}
+            />
+            <CustomButton
+              title="Save Password"
+              onPress={handlePasswordUpdate}
+              color="#007AFF"
+            />
+            <CustomButton
+              title="Cancel Password Update"
+              onPress={() => {
+                setShowPasswordFields(false);
+                setCurrentPassword("");
+                setNewPassword("");
+                setConfirmNewPassword("");
+                setCurrentPasswordError("");
+                setNewPasswordError("");
+                setConfirmNewPasswordError("");
+              }}
+              color="#888"
+            />
+          </>
+        )}
+      </FormWrapper>
+      <View style={{ marginTop: 32, alignItems: "center" }}>
+        <CustomButton
+          title="Sign Out"
+          color="#FF3B30"
+          onPress={() => {
+            setUserId(null);
+          }}
+        />
+      </View>
+    </>
   );
 }

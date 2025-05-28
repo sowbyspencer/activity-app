@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Button, View } from "react-native"; // Keep Button for specific cases
+import { Button, View, Alert } from "react-native"; // Keep Button for specific cases
 import { fetchUserProfile, updateUserProfile } from "@/api/userService";
 import { useAuth } from "@/context/AuthContext";
 import * as ImagePicker from "expo-image-picker";
@@ -17,6 +17,9 @@ export default function ProfileScreen() {
     profileImage: "https://via.placeholder.com/150",
   });
   const [isEditing, setIsEditing] = useState(false);
+  const [firstNameError, setFirstNameError] = useState("");
+  const [lastNameError, setLastNameError] = useState("");
+  const [emailError, setEmailError] = useState("");
 
   useEffect(() => {
     const loadUserProfile = async () => {
@@ -38,6 +41,25 @@ export default function ProfileScreen() {
 
   const handleUpdate = async () => {
     if (isEditing) {
+      let hasError = false;
+      setFirstNameError("");
+      setLastNameError("");
+      setEmailError("");
+      // Email validation regex
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(form.email)) {
+        setEmailError("Please enter a valid email address.");
+        hasError = true;
+      }
+      if (!form.firstName.trim()) {
+        setFirstNameError("First name cannot be empty.");
+        hasError = true;
+      }
+      if (!form.lastName.trim()) {
+        setLastNameError("Last name cannot be empty.");
+        hasError = true;
+      }
+      if (hasError) return;
       try {
         const formData = new FormData();
         formData.append("firstName", form.firstName);
@@ -93,34 +115,39 @@ export default function ProfileScreen() {
         <CustomButton
           title="Change Profile Image"
           onPress={handleImageChange}
+          color="#007AFF"
         />
       )}
       {/* First Name Field */}
       <CustomInput
-        placeholder="First Name (Error)"
+        placeholder="First Name"
         value={form.firstName}
-        onChangeText={(text) => setForm({ ...form, firstName: text })}
+        onChangeText={(text: string) => setForm({ ...form, firstName: text })}
         editable={isEditing}
+        error={firstNameError}
       />
       {/* Last Name Field */}
       <CustomInput
-        placeholder="Last Name (Error)"
+        placeholder="Last Name"
         value={form.lastName}
-        onChangeText={(text) => setForm({ ...form, lastName: text })}
+        onChangeText={(text: string) => setForm({ ...form, lastName: text })}
         editable={isEditing}
+        error={lastNameError}
       />
       {/* Email Field */}
       <CustomInput
-        placeholder="Email (Error)"
+        placeholder="Email"
         value={form.email}
-        onChangeText={(text) => setForm({ ...form, email: text })}
+        onChangeText={(text: string) => setForm({ ...form, email: text })}
         editable={isEditing}
         keyboardType="email-address"
+        error={emailError}
       />
       {/* Update Profile Button */}
       <CustomButton
         title={isEditing ? "Save Profile" : "Update Profile"}
         onPress={handleUpdate}
+        color="#007AFF"
       />
       {/* Update Password Button */}
       {isEditing && (

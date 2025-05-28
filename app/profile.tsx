@@ -7,9 +7,11 @@ import CustomInput from "@/components/ui/CustomInput";
 import CustomButton from "@/components/ui/CustomButton";
 import ProfileImage from "@/components/ui/ProfileImage";
 import FormWrapper from "@/components/ui/FormWrapper";
+import { useRouter } from "expo-router";
 
 export default function ProfileScreen() {
   const { userId, setUserId } = useAuth();
+  const router = useRouter();
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -73,7 +75,7 @@ export default function ProfileScreen() {
         formData.append("lastName", form.lastName);
         formData.append("email", form.email);
 
-        if (!form.profileImage.startsWith("http")) {
+        if (form.profileImage && !form.profileImage.startsWith("http")) {
           const imageFile = {
             uri: form.profileImage,
             name: "profile.jpg",
@@ -299,7 +301,17 @@ export default function ProfileScreen() {
           title="Sign Out"
           color="#FF3B30"
           onPress={() => {
-            setUserId(null);
+            Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+              { text: "Cancel", style: "cancel" },
+              {
+                text: "Sign Out",
+                style: "destructive",
+                onPress: () => {
+                  setUserId(null);
+                  router.replace("/auth/login");
+                },
+              },
+            ]);
           }}
         />
       </View>

@@ -51,6 +51,16 @@ Join our community of developers creating universal apps.
 
 ## Version History
 
+### v1.0.2 (May 28, 2025)
+
+- Refactored authentication to use a global AuthContext, making user_id available throughout the app after login.
+- Enhanced login flow to correctly extract and persist user_id, resolving AsyncStorage warnings.
+- Updated profile page to use user_id from AuthContext instead of navigation params.
+- Improved navigation and header logic for chat and group chat screens; chat headers now display the correct activity or user name, even when there are no messages.
+- Passed correct parameters (activityName for group chats, chatPartner for direct chats) when navigating to chat screens, ensuring accurate and user-friendly headers.
+- Added custom headers for profile and my activities screens.
+- General code cleanup and improved maintainability.
+
 ### v1.0.1
 
 - Added a "Version History" section to the README to track changes.

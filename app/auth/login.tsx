@@ -6,6 +6,7 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import { API_URL } from "@/api/config";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/context/AuthContext";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function LoginScreen() {
   const colorScheme = useColorScheme();
@@ -15,6 +16,7 @@ export default function LoginScreen() {
     email: "",
     password: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
     try {
@@ -73,20 +75,30 @@ export default function LoginScreen() {
             color: colorScheme === "dark" ? "#fff" : "#000",
           }}
         />
-        <CustomInput
-          placeholder="Password"
-          value={form.password}
-          onChangeText={(text: string) => setForm({ ...form, password: text })}
-          secureTextEntry
-          style={{
-            marginBottom: 20,
-            borderWidth: 1,
-            borderColor: colorScheme === "dark" ? "#888" : "#888",
-            borderRadius: 8,
-            padding: 10,
-            color: colorScheme === "dark" ? "#fff" : "#000",
-          }}
-        />
+        <View style={{ position: "relative", width: "100%", marginBottom: 20 }}>
+          <CustomInput
+            placeholder="Password"
+            value={form.password}
+            onChangeText={(text: string) =>
+              setForm({ ...form, password: text })
+            }
+            secureTextEntry={!showPassword}
+            style={{
+              borderWidth: 1,
+              borderColor: colorScheme === "dark" ? "#888" : "#888",
+              borderRadius: 8,
+              padding: 10,
+              color: colorScheme === "dark" ? "#fff" : "#000",
+            }}
+          />
+          <Ionicons
+            name={showPassword ? "eye-off" : "eye"}
+            size={22}
+            color="#888"
+            style={{ position: "absolute", right: 16, top: 14 }}
+            onPress={() => setShowPassword((v) => !v)}
+          />
+        </View>
         <CustomButton title="Log In" onPress={handleLogin} color="#007AFF" />
         <CustomButton
           title="Don't have an account? Sign Up"

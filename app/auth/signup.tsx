@@ -5,6 +5,7 @@ import CustomButton from "@/components/ui/CustomButton";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { API_URL } from "@/api/config";
 import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function SignupScreen() {
   const colorScheme = useColorScheme();
@@ -21,6 +22,8 @@ export default function SignupScreen() {
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
   const [firstNameError, setFirstNameError] = useState("");
   const [lastNameError, setLastNameError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleSignup = async () => {
     setEmailError("");
@@ -136,22 +139,42 @@ export default function SignupScreen() {
           autoCapitalize="none"
           error={emailError}
         />
-        <CustomInput
-          placeholder="Password"
-          value={form.password}
-          onChangeText={(text: string) => setForm({ ...form, password: text })}
-          secureTextEntry
-          error={passwordError}
-        />
-        <CustomInput
-          placeholder="Confirm Password"
-          value={form.confirmPassword}
-          onChangeText={(text: string) =>
-            setForm({ ...form, confirmPassword: text })
-          }
-          secureTextEntry
-          error={confirmPasswordError}
-        />
+        <View style={{ position: "relative", width: "100%", marginBottom: 10 }}>
+          <CustomInput
+            placeholder="Password"
+            value={form.password}
+            onChangeText={(text: string) =>
+              setForm({ ...form, password: text })
+            }
+            secureTextEntry={!showPassword}
+            error={passwordError}
+          />
+          <Ionicons
+            name={showPassword ? "eye-off" : "eye"}
+            size={22}
+            color="#888"
+            style={{ position: "absolute", right: 16, top: 14 }}
+            onPress={() => setShowPassword((v) => !v)}
+          />
+        </View>
+        <View style={{ position: "relative", width: "100%", marginBottom: 10 }}>
+          <CustomInput
+            placeholder="Confirm Password"
+            value={form.confirmPassword}
+            onChangeText={(text: string) =>
+              setForm({ ...form, confirmPassword: text })
+            }
+            secureTextEntry={!showConfirmPassword}
+            error={confirmPasswordError}
+          />
+          <Ionicons
+            name={showConfirmPassword ? "eye-off" : "eye"}
+            size={22}
+            color="#888"
+            style={{ position: "absolute", right: 16, top: 14 }}
+            onPress={() => setShowConfirmPassword((v) => !v)}
+          />
+        </View>
         <CustomInput
           placeholder="First Name"
           value={form.first_name}

@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, Text, Alert } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, Alert, BackHandler, Platform } from "react-native";
 import CustomInput from "@/components/ui/CustomInput";
 import CustomButton from "@/components/ui/CustomButton";
 import CustomPasswordInput from "@/components/ui/CustomPasswordInput";
@@ -8,6 +8,7 @@ import { API_URL } from "@/api/config";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/context/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function LoginScreen() {
   const colorScheme = useColorScheme();
@@ -18,6 +19,22 @@ export default function LoginScreen() {
     password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (Platform.OS === "android") {
+        const backHandler = BackHandler.addEventListener(
+          "hardwareBackPress",
+          () => {
+            // Exit the app if on the login screen
+            BackHandler.exitApp();
+            return true;
+          }
+        );
+        return () => backHandler.remove();
+      }
+    }, [])
+  );
 
   const handleLogin = async () => {
     try {

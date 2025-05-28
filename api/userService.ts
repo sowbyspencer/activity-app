@@ -48,3 +48,28 @@ export const updateUserProfile = async (userId: number, formData: FormData) => {
         return null;
     }
 };
+
+export const updateUserPassword = async (
+    userId: number,
+    currentPassword: string,
+    newPassword: string
+) => {
+    try {
+        const response = await fetch(`${API_URL}/users/${userId}/password`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ currentPassword, newPassword }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.error || "Failed to update password");
+        }
+        return data;
+    } catch (error: any) {
+        // Only log unexpected errors
+        if (error && error.message !== "Current password is incorrect.") {
+            console.error("Error updating user password:", error);
+        }
+        throw error;
+    }
+};

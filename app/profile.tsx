@@ -20,6 +20,13 @@ export default function ProfileScreen() {
   const [firstNameError, setFirstNameError] = useState("");
   const [lastNameError, setLastNameError] = useState("");
   const [emailError, setEmailError] = useState("");
+  const [showPasswordFields, setShowPasswordFields] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [currentPasswordError, setCurrentPasswordError] = useState("");
+  const [newPasswordError, setNewPasswordError] = useState("");
+  const [confirmNewPasswordError, setConfirmNewPasswordError] = useState("");
 
   useEffect(() => {
     const loadUserProfile = async () => {
@@ -105,6 +112,56 @@ export default function ProfileScreen() {
     }
   };
 
+  const handlePasswordUpdate = async () => {
+    setCurrentPasswordError("");
+    setNewPasswordError("");
+    setConfirmNewPasswordError("");
+    let hasError = false;
+    if (!currentPassword) {
+      setCurrentPasswordError("Current password is required.");
+      hasError = true;
+    }
+    if (!newPassword) {
+      setNewPasswordError("New password is required.");
+      hasError = true;
+    }
+    if (!confirmNewPassword) {
+      setConfirmNewPasswordError("Please confirm your new password.");
+      hasError = true;
+    }
+    if (
+      newPassword &&
+      confirmNewPassword &&
+      newPassword !== confirmNewPassword
+    ) {
+      setNewPasswordError("Passwords do not match.");
+      setConfirmNewPasswordError("Passwords do not match.");
+      hasError = true;
+    }
+    if (hasError) return;
+    try {
+      const { updateUserPassword } = await import("@/api/userService");
+      await updateUserPassword(Number(userId), currentPassword, newPassword);
+      Alert.alert(
+        "Password Updated",
+        "Your password has been updated successfully."
+      );
+      setShowPasswordFields(false);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmNewPassword("");
+    } catch (error: any) {
+      if (error.message === "Current password is incorrect.") {
+        setCurrentPasswordError("Current password is incorrect.");
+      } else {
+        Alert.alert(
+          "Error",
+          error.message || "Failed to update password. Please try again."
+        );
+      }
+    }
+  };
+
   return (
     <FormWrapper>
       {/* Profile Image */}
@@ -150,12 +207,55 @@ export default function ProfileScreen() {
         color="#007AFF"
       />
       {/* Update Password Button */}
-      {isEditing && (
+      {isEditing && !showPasswordFields && (
         <CustomButton
           title="Update Password"
-          onPress={() => console.log("Update Password pressed")}
+          onPress={() => setShowPasswordFields(true)}
           color="#FF5733"
         />
+      )}
+      {isEditing && showPasswordFields && (
+        <>
+          <CustomInput
+            placeholder="Current Password"
+            value={currentPassword}
+            onChangeText={setCurrentPassword}
+            secureTextEntry
+            error={currentPasswordError}
+          />
+          <CustomInput
+            placeholder="New Password"
+            value={newPassword}
+            onChangeText={setNewPassword}
+            secureTextEntry
+            error={newPasswordError}
+          />
+          <CustomInput
+            placeholder="Confirm New Password"
+            value={confirmNewPassword}
+            onChangeText={setConfirmNewPassword}
+            secureTextEntry
+            error={confirmNewPasswordError}
+          />
+          <CustomButton
+            title="Save Password"
+            onPress={handlePasswordUpdate}
+            color="#007AFF"
+          />
+          <CustomButton
+            title="Cancel"
+            onPress={() => {
+              setShowPasswordFields(false);
+              setCurrentPassword("");
+              setNewPassword("");
+              setConfirmNewPassword("");
+              setCurrentPasswordError("");
+              setNewPasswordError("");
+              setConfirmNewPasswordError("");
+            }}
+            color="#888"
+          />
+        </>
       )}
     </FormWrapper>
   );

@@ -17,6 +17,7 @@ import ProfileImage from "@/components/ui/ProfileImage";
 import FormWrapper from "@/components/ui/FormWrapper";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import CustomPasswordInput from "@/components/ui/CustomPasswordInput";
 
 export default function ProfileScreen() {
   const { userId, setUserId } = useAuth();
@@ -307,54 +308,27 @@ export default function ProfileScreen() {
         )}
         {isEditing && showPasswordFields && (
           <>
-            <View style={{ position: "relative", width: "100%" }}>
-              <CustomInput
-                placeholder="Current Password"
-                value={currentPassword}
-                onChangeText={setCurrentPassword}
-                secureTextEntry={!showCurrentPassword}
-                error={currentPasswordError}
-              />
-              <Ionicons
-                name={showCurrentPassword ? "eye-off" : "eye"}
-                size={22}
-                color="#888"
-                style={{ position: "absolute", right: 16, top: 14 }}
-                onPress={() => setShowCurrentPassword((v) => !v)}
-              />
-            </View>
-            <View style={{ position: "relative", width: "100%" }}>
-              <CustomInput
-                placeholder="New Password"
-                value={newPassword}
-                onChangeText={setNewPassword}
-                secureTextEntry={!showNewPassword}
-                error={newPasswordError}
-              />
-              <Ionicons
-                name={showNewPassword ? "eye-off" : "eye"}
-                size={22}
-                color="#888"
-                style={{ position: "absolute", right: 16, top: 14 }}
-                onPress={() => setShowNewPassword((v) => !v)}
-              />
-            </View>
-            <View style={{ position: "relative", width: "100%" }}>
-              <CustomInput
-                placeholder="Confirm New Password"
-                value={confirmNewPassword}
-                onChangeText={setConfirmNewPassword}
-                secureTextEntry={!showConfirmNewPassword}
-                error={confirmNewPasswordError}
-              />
-              <Ionicons
-                name={showConfirmNewPassword ? "eye-off" : "eye"}
-                size={22}
-                color="#888"
-                style={{ position: "absolute", right: 16, top: 14 }}
-                onPress={() => setShowConfirmNewPassword((v) => !v)}
-              />
-            </View>
+            <CustomPasswordInput
+              placeholder="Current Password"
+              value={currentPassword}
+              onChangeText={setCurrentPassword}
+              error={currentPasswordError}
+              autoCapitalize="none"
+            />
+            <CustomPasswordInput
+              placeholder="New Password"
+              value={newPassword}
+              onChangeText={setNewPassword}
+              error={newPasswordError}
+              autoCapitalize="none"
+            />
+            <CustomPasswordInput
+              placeholder="Confirm New Password"
+              value={confirmNewPassword}
+              onChangeText={setConfirmNewPassword}
+              error={confirmNewPasswordError}
+              autoCapitalize="none"
+            />
             <CustomButton
               title="Save Password"
               onPress={handlePasswordUpdate}
@@ -432,27 +406,14 @@ export default function ProfileScreen() {
             <Text style={{ marginBottom: 12 }}>
               Please enter your password to confirm account deletion.
             </Text>
-            <View style={{ position: "relative", width: "100%" }}>
-              <TextInput
-                placeholder="Password"
-                value={deletePassword}
-                onChangeText={setDeletePassword}
-                secureTextEntry={!showDeletePassword}
-                style={styles.input}
-              />
-              <Ionicons
-                name={showDeletePassword ? "eye-off" : "eye"}
-                size={22}
-                color="#888"
-                style={{ position: "absolute", right: 16, top: 14 }}
-                onPress={() => setShowDeletePassword((v) => !v)}
-              />
-            </View>
-            {!!deletePasswordError && (
-              <Text style={{ color: "#B00020", marginBottom: 8 }}>
-                {deletePasswordError}
-              </Text>
-            )}
+            <CustomPasswordInput
+              placeholder="Password"
+              value={deletePassword}
+              onChangeText={setDeletePassword}
+              error={deletePasswordError}
+              autoCapitalize="none"
+              style={styles.input}
+            />
             <View
               style={{ flexDirection: "row", justifyContent: "space-between" }}
             >

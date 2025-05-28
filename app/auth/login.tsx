@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, Text, Alert } from "react-native";
 import CustomInput from "@/components/ui/CustomInput";
 import CustomButton from "@/components/ui/CustomButton";
+import CustomPasswordInput from "@/components/ui/CustomPasswordInput";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { API_URL } from "@/api/config";
 import { useRouter } from "expo-router";
@@ -66,39 +67,14 @@ export default function LoginScreen() {
           onChangeText={(text: string) => setForm({ ...form, email: text })}
           keyboardType="email-address"
           autoCapitalize="none"
-          style={{
-            marginBottom: 10,
-            borderWidth: 1,
-            borderColor: colorScheme === "dark" ? "#888" : "#888",
-            borderRadius: 8,
-            padding: 10,
-            color: colorScheme === "dark" ? "#fff" : "#000",
-          }}
         />
-        <View style={{ position: "relative", width: "100%", marginBottom: 20 }}>
-          <CustomInput
-            placeholder="Password"
-            value={form.password}
-            onChangeText={(text: string) =>
-              setForm({ ...form, password: text })
-            }
-            secureTextEntry={!showPassword}
-            style={{
-              borderWidth: 1,
-              borderColor: colorScheme === "dark" ? "#888" : "#888",
-              borderRadius: 8,
-              padding: 10,
-              color: colorScheme === "dark" ? "#fff" : "#000",
-            }}
-          />
-          <Ionicons
-            name={showPassword ? "eye-off" : "eye"}
-            size={22}
-            color="#888"
-            style={{ position: "absolute", right: 16, top: 14 }}
-            onPress={() => setShowPassword((v) => !v)}
-          />
-        </View>
+        <CustomPasswordInput
+          placeholder="Password"
+          value={form.password}
+          onChangeText={(text: string) => setForm({ ...form, password: text })}
+          autoCapitalize="none"
+          style={{ marginBottom: 20 }}
+        />
         <CustomButton title="Log In" onPress={handleLogin} color="#007AFF" />
         <CustomButton
           title="Don't have an account? Sign Up"

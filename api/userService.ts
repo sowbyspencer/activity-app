@@ -73,3 +73,24 @@ export const updateUserPassword = async (
         throw error;
     }
 };
+
+export const deleteUserAccount = async (
+    userId: number,
+    password: string,
+    validateOnly?: boolean
+) => {
+    try {
+        const response = await fetch(`${API_URL}/users/${userId}/delete`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ password, validateOnly }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.error || "Failed to delete account");
+        }
+        return data;
+    } catch (error: any) {
+        throw error;
+    }
+};

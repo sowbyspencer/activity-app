@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Button, View, Alert } from "react-native"; // Keep Button for specific cases
+import {
+  Button,
+  View,
+  Alert,
+  Modal,
+  Text,
+  TextInput,
+  StyleSheet,
+} from "react-native"; // Add Modal, Text, TextInput, StyleSheet
 import { fetchUserProfile, updateUserProfile } from "@/api/userService";
 import { useAuth } from "@/context/AuthContext";
 import * as ImagePicker from "expo-image-picker";
@@ -29,6 +37,10 @@ export default function ProfileScreen() {
   const [currentPasswordError, setCurrentPasswordError] = useState("");
   const [newPasswordError, setNewPasswordError] = useState("");
   const [confirmNewPasswordError, setConfirmNewPasswordError] = useState("");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deletePasswordError, setDeletePasswordError] = useState("");
+  const [showFinalDeleteConfirm, setShowFinalDeleteConfirm] = useState(false);
 
   useEffect(() => {
     const loadUserProfile = async () => {
@@ -161,6 +173,42 @@ export default function ProfileScreen() {
           error.message || "Failed to update password. Please try again."
         );
       }
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setDeletePasswordError("");
+    if (!deletePassword) {
+      setDeletePasswordError("Password is required.");
+      return;
+    }
+    // Try password validation before showing final prompt
+    try {
+      const { deleteUserAccount } = await import("@/api/userService");
+      // Call backend with a test flag to only validate password
+      await deleteUserAccount(Number(userId), deletePassword, true); // true = validate only
+      setShowDeleteModal(false);
+      setShowFinalDeleteConfirm(true);
+    } catch (error: any) {
+      setDeletePasswordError(error.message || "Incorrect password.");
+    }
+  };
+
+  const confirmDeleteAccount = async () => {
+    try {
+      const { deleteUserAccount } = await import("@/api/userService");
+      await deleteUserAccount(Number(userId), deletePassword);
+      Alert.alert("Account Deleted", "Your account has been deleted.");
+      setUserId(null);
+      router.replace("/auth/login");
+    } catch (error: any) {
+      Alert.alert(
+        "Error",
+        error.message || "Failed to delete account. Please try again."
+      );
+    } finally {
+      setShowFinalDeleteConfirm(false);
+      setDeletePassword("");
     }
   };
 
@@ -315,6 +363,139 @@ export default function ProfileScreen() {
           }}
         />
       </View>
+      <View style={{ marginTop: 64, alignItems: "center", marginBottom: 24 }}>
+        <CustomButton
+          title="Delete Account"
+          color="#B00020"
+          onPress={() => {
+            Alert.alert(
+              "Delete Account",
+              "You will confirm deletion with a password. Are you sure you want to delete your account?",
+              [
+                { text: "Cancel", style: "cancel" },
+                {
+                  text: "Continue",
+                  style: "destructive",
+                  onPress: () => setShowDeleteModal(true),
+                },
+              ]
+            );
+          }}
+        />
+      </View>
+      {/* Delete Account Modal */}
+      <Modal
+        visible={showDeleteModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowDeleteModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text
+              style={{ fontWeight: "bold", fontSize: 18, marginBottom: 12 }}
+            >
+              Confirm Account Deletion
+            </Text>
+            <Text style={{ marginBottom: 12 }}>
+              Please enter your password to confirm account deletion.
+            </Text>
+            <TextInput
+              placeholder="Password"
+              value={deletePassword}
+              onChangeText={setDeletePassword}
+              secureTextEntry
+              style={styles.input}
+            />
+            {!!deletePasswordError && (
+              <Text style={{ color: "#B00020", marginBottom: 8 }}>
+                {deletePasswordError}
+              </Text>
+            )}
+            <View
+              style={{ flexDirection: "row", justifyContent: "space-between" }}
+            >
+              <Button
+                title="Cancel"
+                color="#888"
+                onPress={() => {
+                  setShowDeleteModal(false);
+                  setDeletePassword("");
+                  setDeletePasswordError("");
+                }}
+              />
+              <Button
+                title="Continue"
+                color="#B00020"
+                onPress={handleDeleteAccount}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
+      {/* Final Delete Confirmation Modal */}
+      <Modal
+        visible={showFinalDeleteConfirm}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowFinalDeleteConfirm(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text
+              style={{ fontWeight: "bold", fontSize: 18, marginBottom: 12 }}
+            >
+              Are you absolutely sure?
+            </Text>
+            <Text style={{ marginBottom: 16 }}>
+              This action cannot be undone. Your account and all associated data
+              will be permanently deleted.
+            </Text>
+            <View
+              style={{ flexDirection: "row", justifyContent: "space-between" }}
+            >
+              <Button
+                title="Cancel"
+                color="#888"
+                onPress={() => setShowFinalDeleteConfirm(false)}
+              />
+              <Button
+                title="Delete Account"
+                color="#B00020"
+                onPress={confirmDeleteAccount}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 24,
+    width: 320,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 6,
+    padding: 10,
+    marginBottom: 12,
+    fontSize: 16,
+  },
+});

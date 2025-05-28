@@ -51,7 +51,16 @@ Join our community of developers creating universal apps.
 
 ## Version History
 
-### v1.0.2 (May 28, 2025)
+### v1.0.3 (May 28, 2025)
+
+- Completed the profile creation/edit UI, including all form fields, validation, and profile image upload/preview.
+- Improved error handling and user feedback for profile updates.
+- Finished backend profile update endpoints and tested integration.
+- Fixed navigation bugs affecting tab switching and returning from nested screens.
+- Created a custom reusable UI component and refactored related code for better consistency and layout responsiveness.
+- Updated project documentation and work plan to reflect completed tasks.
+
+### v1.0.2 (May 21, 2025)
 
 - Refactored authentication to use a global AuthContext, making user_id available throughout the app after login.
 - Enhanced login flow to correctly extract and persist user_id, resolving AsyncStorage warnings.

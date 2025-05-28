@@ -63,19 +63,23 @@ export default function RootLayout() {
           {/* Activity Info Screen with Custom Header */}
           <Stack.Screen
             name="activityInfo"
-            options={({ route }) => ({
-              title: route.params?.activity?.name || "Activity Info",
-              headerShown: true,
-              headerStyle: {
-                backgroundColor: colorScheme === "dark" ? "#222" : "#f5f5f5", // 🔹 Background matches main page
-              },
-              fontSize: 20,
-              color: colorScheme === "dark" ? "white" : "black",
-              fontWeight: "bold",
-              headerBackTitleVisible: false, // Hides the "Back" text
-              presentation: "transparentModal", // Prevents slide effect
-              animation: "fade", // Uses fade instead of slide
-            })}
+            options={({ route }) => {
+              const title =
+                (route.params &&
+                  (route.params as any).activity &&
+                  (route.params as any).activity.name) ||
+                "Activity Info";
+              return {
+                title,
+                headerShown: true,
+                headerStyle: {
+                  backgroundColor: colorScheme === "dark" ? "#222" : "#f5f5f5",
+                },
+                headerBackTitleVisible: false,
+                presentation: "transparentModal",
+                animation: "fade",
+              };
+            }}
           />
 
           {/* Not Found Screen */}

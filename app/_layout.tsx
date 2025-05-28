@@ -39,6 +39,9 @@ export default function RootLayout() {
           barStyle={colorScheme === "dark" ? "light-content" : "dark-content"}
         />
         <Stack>
+          {/* Hide header for the entire auth route group */}
+          <Stack.Screen name="auth" options={{ headerShown: false }} />
+
           {/* Login Page (Initial Screen) */}
           <Stack.Screen name="auth/login" options={{ headerShown: false }} />
 

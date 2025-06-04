@@ -51,6 +51,15 @@ Join our community of developers creating universal apps.
 
 ## Version History
 
+### v1.0.4 (June 4, 2025)
+
+- Fixed duplicate activity fetches and server requests on repeated login/logout cycles by:
+  - Adding a unique key based on userId to the tab navigator, forcing a remount on login/logout.
+  - Ensuring only one instance of the ActivitySwiper and its effects run at a time.
+- Added detailed debug logging to track effect runs, cleanups, and fetch calls for activity data.
+- Cleaned up navigation and context usage to prevent memory leaks and race conditions.
+- Updated documentation and work plan to reflect these changes.
+
 ### v1.0.3 (May 28, 2025)
 
 - Completed the profile creation/edit UI, including all form fields, validation, and profile image upload/preview.

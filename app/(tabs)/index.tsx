@@ -41,15 +41,36 @@ export default function ActivitySwiper() {
 
   // Fetch data
   useEffect(() => {
+    console.log("[ActivitySwiper] useEffect RUN, userId:", userId);
     if (!userId) return;
     setActivities([]);
     setLoading(true);
+    let isActive = true;
     const loadActivities = async () => {
+      console.log("[ActivitySwiper] fetchActivities CALLED, userId:", userId);
       const data = await fetchActivities(userId);
-      setActivities(data);
-      setLoading(false);
+      if (isActive) {
+        console.log("[ActivitySwiper] setActivities CALLED, activities.length:", data.length);
+        setActivities(data);
+        setLoading(false);
+      }
     };
     loadActivities();
+    return () => {
+      isActive = false;
+      console.log("[ActivitySwiper] useEffect CLEANUP, userId:", userId);
+    };
+  }, [userId]);
+
+  // Reset state when user logs out
+  useEffect(() => {
+    if (!userId) {
+      console.log("[ActivitySwiper] RESET effect, userId:", userId);
+      setActivities([]);
+      setCurrentActivity(0);
+      setCurrentImage(0);
+      setLoading(true);
+    }
   }, [userId]);
 
   useFocusEffect(

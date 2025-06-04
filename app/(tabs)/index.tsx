@@ -1,25 +1,36 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
-import {
-  View,
-  Text,
-  Image,
-  Animated,
-  PanResponder,
-  Dimensions,
-  ActivityIndicator,
-  TouchableOpacity,
-} from "react-native";
+import { View, Text, Image, Animated, PanResponder, Dimensions, ActivityIndicator, TouchableOpacity } from "react-native";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { fetchActivities } from "@/api/activityService";
+import { useAuth } from "@/context/AuthContext";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 
+interface Activity {
+  id: number;
+  name: string;
+  description: string;
+  location: string;
+  has_cost: boolean;
+  cost: number | null;
+  available_sun: boolean;
+  available_mon: boolean;
+  available_tue: boolean;
+  available_wed: boolean;
+  available_thu: boolean;
+  available_fri: boolean;
+  available_sat: boolean;
+  url: string;
+  images: string[];
+}
+
 export default function ActivitySwiper() {
   const colorScheme = useColorScheme();
   const navigation = useNavigation();
-  const [activities, setActivities] = useState([]);
+  const { userId } = useAuth();
+  const [activities, setActivities] = useState<Activity[]>([]);
   const [currentActivity, setCurrentActivity] = useState(0);
   const [currentImage, setCurrentImage] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -30,13 +41,16 @@ export default function ActivitySwiper() {
 
   // Fetch data
   useEffect(() => {
+    if (!userId) return;
+    setActivities([]);
+    setLoading(true);
     const loadActivities = async () => {
-      const data = await fetchActivities();
+      const data = await fetchActivities(userId);
       setActivities(data);
       setLoading(false);
     };
     loadActivities();
-  }, []);
+  }, [userId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -63,10 +77,7 @@ export default function ActivitySwiper() {
       if (!activities.length) return;
 
       // **Tap Detection**
-      if (
-        Math.abs(gesture.dx) < TAP_THRESHOLD &&
-        Math.abs(gesture.dy) < TAP_THRESHOLD
-      ) {
+      if (Math.abs(gesture.dx) < TAP_THRESHOLD && Math.abs(gesture.dy) < TAP_THRESHOLD) {
         navigation.navigate("activityInfo", {
           activity: activities[currentActivity],
           image: activities[currentActivity]?.images[currentImage],
@@ -75,17 +86,9 @@ export default function ActivitySwiper() {
       }
 
       // **LEFT / RIGHT** - Switch images
-      if (
-        Math.abs(gesture.dx) > Math.abs(gesture.dy) &&
-        Math.abs(gesture.dx) > 100
-      ) {
+      if (Math.abs(gesture.dx) > Math.abs(gesture.dy) && Math.abs(gesture.dx) > 100) {
         const nextImageIndex =
-          gesture.dx < 0
-            ? Math.min(
-                currentImage + 1,
-                activities[currentActivity].images.length - 1
-              )
-            : Math.max(currentImage - 1, 0);
+          gesture.dx < 0 ? Math.min(currentImage + 1, activities[currentActivity].images.length - 1) : Math.max(currentImage - 1, 0);
 
         Animated.timing(translateX, {
           toValue: gesture.dx < 0 ? -SCREEN_WIDTH : SCREEN_WIDTH,
@@ -133,9 +136,7 @@ export default function ActivitySwiper() {
         }}
       >
         <ActivityIndicator size="large" color="blue" />
-        <Text style={{ color: colorScheme === "dark" ? "white" : "black" }}>
-          Loading Activities...
-        </Text>
+        <Text style={{ color: colorScheme === "dark" ? "white" : "black" }}>Loading Activities...</Text>
       </View>
     );
   }

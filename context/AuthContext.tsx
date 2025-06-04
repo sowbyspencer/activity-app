@@ -11,9 +11,7 @@ const AuthContext = createContext<AuthContextType | undefined>({
   setUserId: () => {},
 });
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -21,12 +19,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [userId]);
 
   useEffect(() => {
+    // On app start, always clear user info (for demo: force logout on every app start)
+    const clearUserInfo = async () => {
+      await AsyncStorage.removeItem("userId");
+      setUserId(null);
+      console.log("[AuthProvider] Cleared user info on app start");
+    };
+    clearUserInfo();
+  }, []);
+
+  useEffect(() => {
     const loadUserId = async () => {
       const storedUserId = await AsyncStorage.getItem("userId");
       console.log("AsyncStorage.getItem returned:", storedUserId); // Log the value retrieved from AsyncStorage
-      if (storedUserId) {
-        setUserId(storedUserId);
-      }
+      setUserId(storedUserId); // Always set, even if null
     };
     loadUserId();
   }, []); // Load userId from storage on app startup
@@ -46,11 +52,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     setUserId(id);
   };
 
-  return (
-    <AuthContext.Provider value={{ userId, setUserId: saveUserId }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={{ userId, setUserId: saveUserId }}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = (): AuthContextType => {

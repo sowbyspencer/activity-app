@@ -120,12 +120,12 @@ export default function ActivitySwiper() {
           translateX.setValue(0);
         });
 
-        // **UP / DOWN** - Switch activity and record swipe
+        // **UP / DOWN** - Switch activity
       } else if (Math.abs(gesture.dy) > 100) {
         const liked = gesture.dy < 0; // Up = like, Down = dislike
         const activity = activities[currentActivity];
         if (userId && activity) {
-          await swipeActivity(Number(userId), activity.id, liked);
+          swipeActivity(Number(userId), activity.id, liked);
         }
         const nextActivityIndex = (currentActivity + 1) % activities.length;
 

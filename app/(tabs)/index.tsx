@@ -4,6 +4,7 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { fetchActivities, swipeActivity } from "@/api/activityService";
 import { useAuth } from "@/context/AuthContext";
+import { API_URL } from "@/api/config";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -82,6 +83,13 @@ export default function ActivitySwiper() {
 
   const TAP_THRESHOLD = 10; // Movement threshold to detect taps
 
+  // Helper: Remove current activity from stack
+  const removeCurrentActivity = () => {
+    setActivities((prev) => prev.filter((_, idx) => idx !== currentActivity));
+    setCurrentActivity(0);
+    setCurrentImage(0);
+  };
+
   const panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponder: () => true,
@@ -99,10 +107,13 @@ export default function ActivitySwiper() {
 
       // **Tap Detection**
       if (Math.abs(gesture.dx) < TAP_THRESHOLD && Math.abs(gesture.dy) < TAP_THRESHOLD) {
-        navigation.navigate("activityInfo", {
-          activity: activities[currentActivity],
-          image: activities[currentActivity]?.images[currentImage],
-        });
+        navigation.navigate(
+          "activityInfo" as never,
+          {
+            activity: activities[currentActivity],
+            image: activities[currentActivity]?.images[currentImage],
+          } as never
+        );
         return;
       }
 
@@ -120,22 +131,19 @@ export default function ActivitySwiper() {
           translateX.setValue(0);
         });
 
-        // **UP / DOWN** - Switch activity
+        // **UP / DOWN** - Remove activity and record swipe
       } else if (Math.abs(gesture.dy) > 100) {
         const liked = gesture.dy < 0; // Up = like, Down = dislike
         const activity = activities[currentActivity];
         if (userId && activity) {
           swipeActivity(Number(userId), activity.id, liked);
         }
-        const nextActivityIndex = (currentActivity + 1) % activities.length;
-
         Animated.timing(translateY, {
           toValue: gesture.dy < 0 ? -SCREEN_HEIGHT : SCREEN_HEIGHT,
           duration: 300,
           useNativeDriver: true,
         }).start(() => {
-          setCurrentActivity(nextActivityIndex);
-          setCurrentImage(0);
+          removeCurrentActivity();
           translateY.setValue(0);
         });
       } else {
@@ -163,6 +171,46 @@ export default function ActivitySwiper() {
       >
         <ActivityIndicator size="large" color="blue" />
         <Text style={{ color: colorScheme === "dark" ? "white" : "black" }}>Loading Activities...</Text>
+      </View>
+    );
+  }
+
+  if (activities.length === 0) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: colorScheme === "dark" ? "black" : "white",
+        }}
+      >
+        <Text style={{ fontSize: 20, color: colorScheme === "dark" ? "white" : "black", marginBottom: 20 }}>No more activities to swipe!</Text>
+        <TouchableOpacity
+          style={{
+            backgroundColor: "#007AFF",
+            paddingHorizontal: 24,
+            paddingVertical: 12,
+            borderRadius: 8,
+          }}
+          onPress={async () => {
+            setLoading(true);
+            setCurrentActivity(0);
+            setCurrentImage(0);
+            // Call backend to reset declined activities for this user
+            await fetch(`${API_URL}/activities/reset-swipes`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ userId: Number(userId) }),
+            });
+            // Refetch activities
+            const data = await fetchActivities(Number(userId));
+            setActivities(data);
+            setLoading(false);
+          }}
+        >
+          <Text style={{ color: "white", fontWeight: "bold" }}>Refresh Declined Activities</Text>
+        </TouchableOpacity>
       </View>
     );
   }

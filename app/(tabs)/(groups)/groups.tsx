@@ -1,16 +1,10 @@
 import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  SafeAreaView,
-  FlatList,
-  TouchableOpacity,
-  Image,
-} from "react-native";
+import { View, Text, SafeAreaView, FlatList, TouchableOpacity, Image } from "react-native";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { useRouter } from "expo-router";
 import { fetchMatchedGroups } from "@/api/groupService";
 import { useAuth } from "@/context/AuthContext";
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function GroupsScreen() {
   const colorScheme = useColorScheme();
@@ -18,14 +12,15 @@ export default function GroupsScreen() {
   const { userId } = useAuth(); // Use userId from AuthContext
   const [groups, setGroups] = useState([]);
 
-  useEffect(() => {
-    const fetchGroups = async () => {
-      const data = await fetchMatchedGroups(Number(userId)); // Use stored userId
-      setGroups(data || []);
-    };
-
-    fetchGroups();
-  }, [userId]); // Add userId as a dependency
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchGroups = async () => {
+        const data = await fetchMatchedGroups(Number(userId));
+        setGroups(data || []);
+      };
+      fetchGroups();
+    }, [userId])
+  );
 
   return (
     <SafeAreaView
@@ -91,8 +86,7 @@ export default function GroupsScreen() {
                     width: 40,
                     height: 40,
                     borderRadius: 20,
-                    backgroundColor:
-                      colorScheme === "dark" ? "#555" : "#D3D3D3",
+                    backgroundColor: colorScheme === "dark" ? "#555" : "#D3D3D3",
                     marginRight: 10,
                   }}
                 />

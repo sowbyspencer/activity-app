@@ -51,6 +51,19 @@ Join our community of developers creating universal apps.
 
 ## Version History
 
+### v1.0.6 (June 11, 2025)
+
+- The swipe API now returns a detailed JSON response including the swipe record, group membership update, and all direct chats created or found. This allows the frontend to provide more informative feedback to users after a swipe.
+- When a user swipes up (joins an activity), direct chats are now automatically created between the new member and all other members of that activity, and both users are added to chat_member. This ensures all group members can chat directly as soon as they join an activity group.
+
+### v1.0.5 (June 11, 2025)
+
+- Integrated swipe actions with backend: swiping up/down records a like/dislike via the API.
+- Swiped activity cards are now removed from the stack immediately.
+- When all activities are swiped, a refresh option appears to repopulate declined activities.
+- Group and activity group screens now show real group membership, not just swipe history.
+- Improved UI feedback and error handling for swipe and group actions.
+
 ### v1.0.4 (June 4, 2025)
 
 - Fixed duplicate activity fetches and server requests on repeated login/logout cycles by:

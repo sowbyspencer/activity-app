@@ -12,3 +12,21 @@ export const fetchActivities = async (userId: string | number) => {
     return [];
   }
 };
+
+export const swipeActivity = async (
+  userId: number,
+  activityId: number,
+  liked: boolean
+) => {
+  try {
+    const response = await fetch(`${API_URL}/activities/swipe`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, activityId, liked }),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Error swiping activity:", error);
+    return { error: true };
+  }
+};

@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect, useCallback } from "react";
 import { View, Text, Image, Animated, PanResponder, Dimensions, ActivityIndicator, TouchableOpacity } from "react-native";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import { fetchActivities } from "@/api/activityService";
+import { fetchActivities, swipeActivity } from "@/api/activityService";
 import { useAuth } from "@/context/AuthContext";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
@@ -94,7 +94,7 @@ export default function ActivitySwiper() {
       }
     },
 
-    onPanResponderRelease: (_, gesture) => {
+    onPanResponderRelease: async (_, gesture) => {
       if (!activities.length) return;
 
       // **Tap Detection**
@@ -120,8 +120,13 @@ export default function ActivitySwiper() {
           translateX.setValue(0);
         });
 
-        // **UP / DOWN** - Switch activity
+        // **UP / DOWN** - Switch activity and record swipe
       } else if (Math.abs(gesture.dy) > 100) {
+        const liked = gesture.dy < 0; // Up = like, Down = dislike
+        const activity = activities[currentActivity];
+        if (userId && activity) {
+          await swipeActivity(Number(userId), activity.id, liked);
+        }
         const nextActivityIndex = (currentActivity + 1) % activities.length;
 
         Animated.timing(translateY, {

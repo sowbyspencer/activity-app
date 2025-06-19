@@ -51,6 +51,15 @@ Join our community of developers creating universal apps.
 
 ## Version History
 
+### v1.0.7 (June 19, 2025)
+
+- Implemented "unlike/leave activity" feature:
+  - Users can now long-press a group on the Groups page to leave/unlike an activity.
+  - Leaving an activity removes the user from the group chat and any direct chats (if no other shared activities).
+  - All related swipe records and messages from the user in group/direct chats are deleted on leave.
+  - The group list refreshes automatically after leaving an activity.
+- Updated UI to provide confirmation before leaving an activity group.
+
 ### v1.0.6 (June 11, 2025)
 
 - The swipe API now returns a detailed JSON response including the swipe record, group membership update, and all direct chats created or found. This allows the frontend to provide more informative feedback to users after a swipe.

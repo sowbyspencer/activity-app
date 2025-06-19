@@ -1,16 +1,10 @@
 import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  SafeAreaView,
-  FlatList,
-  TouchableOpacity,
-  Image,
-} from "react-native";
+import { View, Text, SafeAreaView, FlatList, TouchableOpacity, Image } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { fetchActivityGroup } from "@/api/activityGroupService";
 import { useAuth } from "@/context/AuthContext";
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function ActivityGroupScreen() {
   const colorScheme = useColorScheme();
@@ -55,6 +49,31 @@ export default function ActivityGroupScreen() {
     loadActivityGroup();
   }, [id, userId]);
 
+  // Refresh on focus (when coming back from chat)
+  useFocusEffect(
+    React.useCallback(() => {
+      const loadActivityGroup = async () => {
+        try {
+          const data = await fetchActivityGroup(Number(id), Number(userId));
+          if (!Array.isArray(data.members)) {
+            data.members = [];
+          }
+          data.members = data.members.map((member: any, index: number) => ({
+            id: member.id || `temp-${index}`,
+            name: member.name || "Unknown User",
+            profile_image: member.profile_image || null,
+            chat_id: member.chat_id || null,
+            lastMessage: member.lastMessage || "No messages yet...",
+          }));
+          setActivity(data);
+        } catch (error) {
+          console.error("Error fetching activity group:", error);
+        }
+      };
+      loadActivityGroup();
+    }, [id, userId])
+  );
+
   return (
     <SafeAreaView
       style={{
@@ -73,10 +92,7 @@ export default function ActivityGroupScreen() {
         style={{ alignItems: "center", paddingVertical: 15 }}
       >
         {activity.activity_image ? (
-          <Image
-            source={{ uri: activity.activity_image }}
-            style={{ width: 100, height: 100, borderRadius: 50 }}
-          />
+          <Image source={{ uri: activity.activity_image }} style={{ width: 100, height: 100, borderRadius: 50 }} />
         ) : (
           <View
             style={{
@@ -106,7 +122,7 @@ export default function ActivityGroupScreen() {
             name: "Group Chat",
             lastMessage: activity.lastMessage || "No messages yet...",
             profile_image: activity.activity_image, // ✅ Use activity image
-            chat_id: activity.chat_id, // Pass the group chat_id for the group chat row
+            chat_id: activity.chat_id, // Pass the group chat_id for the group chat
             activityName: activity.activity_name, // Pass activity name for group chat
           },
           ...activity.members.map((member: any) => ({
@@ -154,8 +170,7 @@ export default function ActivityGroupScreen() {
                     width: 40,
                     height: 40,
                     borderRadius: 20,
-                    backgroundColor:
-                      colorScheme === "dark" ? "#555" : "#D3D3D3",
+                    backgroundColor: colorScheme === "dark" ? "#555" : "#D3D3D3",
                     marginRight: 10,
                   }}
                 />

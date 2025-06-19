@@ -10,12 +10,12 @@ export const fetchChatMessages = async (chatId: string) => {
   }
 };
 
-export const sendMessage = async (chatId: string, content: string) => {
+export const sendMessage = async (chatId: string, content: string, user_id: number) => {
   try {
     const response = await fetch(`${API_URL}/chat/${chatId}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content }),
+      body: JSON.stringify({ content, user_id }), // include user_id
     });
 
     return await response.json(); // Return sent message

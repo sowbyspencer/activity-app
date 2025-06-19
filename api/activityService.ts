@@ -30,3 +30,20 @@ export const swipeActivity = async (
     return { error: true };
   }
 };
+
+export const leaveActivity = async (
+  userId: number,
+  activityId: number
+) => {
+  try {
+    const response = await fetch(`${API_URL}/activities/leave`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, activityId }),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Error leaving activity:", error);
+    return { error: true };
+  }
+};

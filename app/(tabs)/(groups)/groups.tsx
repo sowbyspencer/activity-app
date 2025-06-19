@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, SafeAreaView, FlatList, TouchableOpacity, Image } from "react-native";
+import { View, Text, SafeAreaView, FlatList, TouchableOpacity, Image, Alert } from "react-native";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { useRouter } from "expo-router";
 import { fetchMatchedGroups } from "@/api/groupService";
+import { leaveActivity } from "@/api/activityService";
 import { useAuth } from "@/context/AuthContext";
 import { useFocusEffect } from "@react-navigation/native";
 
@@ -21,6 +22,22 @@ export default function GroupsScreen() {
       fetchGroups();
     }, [userId])
   );
+
+  const handleLeaveGroup = (activityId: number) => {
+    Alert.alert("Leave Activity", "Are you sure you want to leave/unlike this activity?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Leave",
+        style: "destructive",
+        onPress: async () => {
+          await leaveActivity(Number(userId), activityId);
+          // Refresh groups
+          const data = await fetchMatchedGroups(Number(userId));
+          setGroups(data || []);
+        },
+      },
+    ]);
+  };
 
   return (
     <SafeAreaView
@@ -67,6 +84,7 @@ export default function GroupsScreen() {
                 pathname: `/activityGroup/${item.activity_id}`,
               })
             }
+            onLongPress={() => handleLeaveGroup(item.activity_id)}
           >
             <View style={{ flexDirection: "row", alignItems: "center" }}>
               {/* Activity Image */}

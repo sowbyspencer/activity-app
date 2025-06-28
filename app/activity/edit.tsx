@@ -1,14 +1,14 @@
 import React from "react";
 import { API_URL } from "@/api/config";
-import { useAuth } from "@/context/AuthContext";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import ActivityForm from "@/components/ActivityForm";
 
-export default function CreateActivityScreen() {
+export default function EditActivityScreen() {
   const navigation = useNavigation();
-  const { userId } = useAuth();
+  const route = useRoute();
+  const { activity } = route.params; // Assume activity data is passed as route params
 
-  const handleCreate = async (form: {
+  const handleEdit = async (form: {
     name: string;
     location: string;
     has_cost: boolean;
@@ -34,7 +34,6 @@ export default function CreateActivityScreen() {
       formData.append("cost", form.cost === "" ? "" : form.cost);
       formData.append("url", form.url);
       formData.append("description", form.description);
-      formData.append("user_id", String(userId));
 
       form.images.forEach((imageUri: string, index: number) => {
         const imageFile = {
@@ -42,31 +41,26 @@ export default function CreateActivityScreen() {
           name: `image_${index}.jpg`,
           type: "image/jpeg",
         };
-
-        formData.append("images", {
-          uri: imageFile.uri,
-          type: imageFile.type,
-          name: imageFile.name,
-        });
+        formData.append("images", imageFile);
       });
 
-      const response = await fetch(`${API_URL}/activities`, {
-        method: "POST",
+      const response = await fetch(`${API_URL}/activities/${activity.id}`, {
+        method: "PUT",
         body: formData,
       });
 
       if (response.ok) {
-        alert("Activity created successfully!");
+        alert("Activity updated successfully!");
         navigation.goBack();
       } else {
         const errorData = await response.json();
         console.error("[FRONTEND] Error response from server:", errorData);
-        alert(`Failed to create activity: ${errorData.error}`);
+        alert(`Failed to update activity: ${errorData.error}`);
       }
     } catch (error) {
-      console.error("[FRONTEND] Error creating activity:", error);
+      console.error("[FRONTEND] Error updating activity:", error);
     }
   };
 
-  return <ActivityForm onSubmit={handleCreate} />;
+  return <ActivityForm initialData={activity} onSubmit={handleEdit} />;
 }

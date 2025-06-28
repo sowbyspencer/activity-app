@@ -90,7 +90,7 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
       <CustomInput placeholder="URL" value={form.url} onChangeText={(text) => setForm({ ...form, url: text })} />
       <CustomInput placeholder="Description" value={form.description} onChangeText={(text) => setForm({ ...form, description: text })} />
 
-      <CustomButton title="Add Images" onPress={pickImage} color={"#D3D3D3"} />
+      <CustomButton title="Add Images" onPress={pickImage} />
       <ScrollView horizontal style={{ marginBottom: 10 }}>
         {form.images.map((uri: string, index: number) => (
           <Image
@@ -108,7 +108,7 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
 
       <AvailabilitySelector availability={form.availability} onToggle={toggleAvailability} />
 
-      <CustomButton title="Submit" onPress={handleSubmit} color={"#D3D3D3"} />
+      <CustomButton title="Submit" onPress={handleSubmit} />
     </FormWrapper>
   );
 }

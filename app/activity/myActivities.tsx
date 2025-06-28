@@ -110,6 +110,44 @@ export default function MyActivitiesScreen() {
     >
       {/* Activity List */}
       <FlatList data={activities} keyExtractor={(item) => item.id.toString()} renderItem={renderActivityItem} />
+      {/* Create Activity Button */}
+      <TouchableOpacity
+        style={{
+          position: "absolute",
+          bottom: 20,
+          right: 20,
+          flexDirection: "row",
+          alignItems: "center",
+          paddingHorizontal: 10,
+          height: 60,
+          borderRadius: 30,
+          backgroundColor: colorScheme === "dark" ? "#333" : "#f5f5f5",
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.3,
+          shadowRadius: 3,
+          elevation: 5,
+        }}
+        onPress={() => router.push("/activity/create")}
+      >
+        <Text
+          style={{
+            fontSize: 24,
+            color: colorScheme === "dark" ? "white" : "black",
+            marginRight: 5,
+          }}
+        >
+          +
+        </Text>
+        <Text
+          style={{
+            fontSize: 16,
+            color: colorScheme === "dark" ? "white" : "black",
+          }}
+        >
+          New Activity
+        </Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }

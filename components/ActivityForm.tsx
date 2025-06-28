@@ -37,15 +37,13 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
     url: initialData?.url || "",
     description: initialData?.description || "",
     images: initialData?.images || [],
-    availability: initialData?.availability || {
-      sun: false,
-      mon: false,
-      tue: false,
-      wed: false,
-      thu: false,
-      fri: false,
-      sat: false,
-    },
+    available_sun: initialData?.availability?.sun || false,
+    available_mon: initialData?.availability?.mon || false,
+    available_tue: initialData?.availability?.tue || false,
+    available_wed: initialData?.availability?.wed || false,
+    available_thu: initialData?.availability?.thu || false,
+    available_fri: initialData?.availability?.fri || false,
+    available_sat: initialData?.availability?.sat || false,
   });
 
   const [showRemoveButtons, setShowRemoveButtons] = useState(false);
@@ -74,13 +72,10 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
     }
   };
 
-  const toggleAvailability = (day: keyof typeof form.availability) => {
+  const toggleAvailability = (day: keyof typeof form) => {
     setForm((prev) => ({
       ...prev,
-      availability: {
-        ...prev.availability,
-        [day]: !prev.availability[day],
-      },
+      [day]: !prev[day],
     }));
   };
 
@@ -148,7 +143,18 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
         ))}
       </ScrollView>
 
-      <AvailabilitySelector availability={form.availability} onToggle={toggleAvailability} />
+      <AvailabilitySelector
+        availability={{
+          sun: form.available_sun,
+          mon: form.available_mon,
+          tue: form.available_tue,
+          wed: form.available_wed,
+          thu: form.available_thu,
+          fri: form.available_fri,
+          sat: form.available_sat,
+        }}
+        onToggle={(day) => toggleAvailability(`available_${day}` as keyof typeof form)}
+      />
 
       <CustomButton title="Submit" onPress={handleSubmit} color="#007AFF" />
     </FormWrapper>

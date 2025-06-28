@@ -6,7 +6,7 @@ import ActivityForm from "@/components/ActivityForm";
 export default function EditActivityScreen() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { activity } = route.params; // Assume activity data is passed as route params
+  const activity = JSON.parse(route.params.activity); // Parse activity data from route params
 
   const handleEdit = async (form: {
     name: string;

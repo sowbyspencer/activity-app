@@ -59,12 +59,13 @@ export default function MyActivitiesScreen() {
         borderBottomWidth: 1,
         borderBottomColor: colorScheme === "dark" ? "#555" : "#ddd",
       }}
-      onPress={() =>
+      onPress={() => {
+        console.log("Navigating to edit screen with activity:", item);
         router.push({
           pathname: `/activity/edit`,
-          params: { activity: item },
-        })
-      }
+          params: { activity: JSON.stringify(item) },
+        });
+      }}
     >
       <View style={{ flexDirection: "row", alignItems: "center" }}>
         {/* Activity Image */}

@@ -8,32 +8,41 @@ export default function EditActivityScreen() {
   const route = useRoute();
   const activity = JSON.parse(route.params.activity); // Parse activity data from route params
 
+  //   console.log("[EditActivityScreen] Initializing with activity:", activity);
+
   const handleEdit = async (form: {
     name: string;
     location: string;
     has_cost: boolean;
-    cost: string;
-    url: string;
+    cost?: string | null; // Allow cost to be optional or null
+    url?: string | null; // Allow url to be optional or null
     description: string;
     images: string[];
-    availability: {
-      sun: boolean;
-      mon: boolean;
-      tue: boolean;
-      wed: boolean;
-      thu: boolean;
-      fri: boolean;
-      sat: boolean;
-    };
+    available_sun: boolean;
+    available_mon: boolean;
+    available_tue: boolean;
+    available_wed: boolean;
+    available_thu: boolean;
+    available_fri: boolean;
+    available_sat: boolean;
   }) => {
     try {
       const formData = new FormData();
       formData.append("name", form.name);
       formData.append("location", form.location);
       formData.append("has_cost", form.has_cost ? "true" : "false");
-      formData.append("cost", form.cost === "" ? "" : form.cost);
-      formData.append("url", form.url);
+      formData.append("cost", form.cost ?? "");
+      formData.append("url", form.url ?? "");
       formData.append("description", form.description);
+
+      // Append availability fields
+      formData.append("available_sun", form.available_sun ? "true" : "false");
+      formData.append("available_mon", form.available_mon ? "true" : "false");
+      formData.append("available_tue", form.available_tue ? "true" : "false");
+      formData.append("available_wed", form.available_wed ? "true" : "false");
+      formData.append("available_thu", form.available_thu ? "true" : "false");
+      formData.append("available_fri", form.available_fri ? "true" : "false");
+      formData.append("available_sat", form.available_sat ? "true" : "false");
 
       form.images.forEach((imageUri: string, index: number) => {
         const imageFile = {
@@ -46,8 +55,10 @@ export default function EditActivityScreen() {
           uri: imageFile.uri,
           type: imageFile.type,
           name: imageFile.name,
-        });
+        } as any);
       });
+
+      formData.append("user_id", activity.user_id || "1"); // Default to 1 if undefined
 
       const response = await fetch(`${API_URL}/activities/${activity.id}`, {
         method: "PUT",
@@ -67,5 +78,16 @@ export default function EditActivityScreen() {
     }
   };
 
-  return <ActivityForm initialData={activity} onSubmit={handleEdit} />;
+  const parsedActivity = {
+    ...activity,
+    available_sun: activity.available_sun === "true" || activity.available_sun === true || !!activity.available_sun,
+    available_mon: activity.available_mon === "true" || activity.available_mon === true || !!activity.available_mon,
+    available_tue: activity.available_tue === "true" || activity.available_tue === true || !!activity.available_tue,
+    available_wed: activity.available_wed === "true" || activity.available_wed === true || !!activity.available_wed,
+    available_thu: activity.available_thu === "true" || activity.available_thu === true || !!activity.available_thu,
+    available_fri: activity.available_fri === "true" || activity.available_fri === true || !!activity.available_fri,
+    available_sat: activity.available_sat === "true" || activity.available_sat === true || !!activity.available_sat,
+  };
+
+  return <ActivityForm initialData={parsedActivity} onSubmit={handleEdit} />;
 }

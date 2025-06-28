@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ScrollView, Image, TouchableOpacity, View, Text } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import CustomInput from "@/components/ui/CustomInput";
@@ -15,15 +15,13 @@ type ActivityFormProps = {
     url?: string;
     description?: string;
     images?: string[];
-    availability?: {
-      sun: boolean;
-      mon: boolean;
-      tue: boolean;
-      wed: boolean;
-      thu: boolean;
-      fri: boolean;
-      sat: boolean;
-    };
+    available_sun?: boolean;
+    available_mon?: boolean;
+    available_tue?: boolean;
+    available_wed?: boolean;
+    available_thu?: boolean;
+    available_fri?: boolean;
+    available_sat?: boolean;
   };
   onSubmit: (form: any) => Promise<void>;
 };
@@ -37,16 +35,24 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
     url: initialData?.url || "",
     description: initialData?.description || "",
     images: initialData?.images || [],
-    available_sun: initialData?.availability?.sun || false,
-    available_mon: initialData?.availability?.mon || false,
-    available_tue: initialData?.availability?.tue || false,
-    available_wed: initialData?.availability?.wed || false,
-    available_thu: initialData?.availability?.thu || false,
-    available_fri: initialData?.availability?.fri || false,
-    available_sat: initialData?.availability?.sat || false,
+    available_sun: initialData?.available_sun || false,
+    available_mon: initialData?.available_mon || false,
+    available_tue: initialData?.available_tue || false,
+    available_wed: initialData?.available_wed || false,
+    available_thu: initialData?.available_thu || false,
+    available_fri: initialData?.available_fri || false,
+    available_sat: initialData?.available_sat || false,
   });
 
   const [showRemoveButtons, setShowRemoveButtons] = useState(false);
+
+  useEffect(() => {
+    console.log("ActivityForm initialized with:", form);
+  }, []);
+
+  useEffect(() => {
+    console.log("Form state updated:", form);
+  }, [form]);
 
   const handleSubmit = async () => {
     try {
@@ -144,16 +150,14 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
       </ScrollView>
 
       <AvailabilitySelector
-        availability={{
-          sun: form.available_sun,
-          mon: form.available_mon,
-          tue: form.available_tue,
-          wed: form.available_wed,
-          thu: form.available_thu,
-          fri: form.available_fri,
-          sat: form.available_sat,
-        }}
-        onToggle={(day) => toggleAvailability(`available_${day}` as keyof typeof form)}
+        available_sun={form.available_sun}
+        available_mon={form.available_mon}
+        available_tue={form.available_tue}
+        available_wed={form.available_wed}
+        available_thu={form.available_thu}
+        available_fri={form.available_fri}
+        available_sat={form.available_sat}
+        onToggle={(day) => toggleAvailability(`available_${day}`)}
       />
 
       <CustomButton title="Submit" onPress={handleSubmit} color="#007AFF" />

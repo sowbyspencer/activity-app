@@ -37,7 +37,10 @@ export default function MyActivitiesScreen() {
           const response = await fetch(`${API_URL}/activities/created?user_id=${userId}`);
           if (response.ok) {
             const data = await response.json();
-            setActivities(data);
+            const transformedData = data.map((activity) => ({
+              ...activity,
+            }));
+            setActivities(transformedData);
           } else {
             console.error("Failed to fetch activities created by user");
           }
@@ -60,7 +63,7 @@ export default function MyActivitiesScreen() {
         borderBottomColor: colorScheme === "dark" ? "#555" : "#ddd",
       }}
       onPress={() => {
-        console.log("Navigating to edit screen with activity:", item);
+        // console.log("Navigating to edit screen with activity:", item);
         router.push({
           pathname: `/activity/edit`,
           params: { activity: JSON.stringify(item) },

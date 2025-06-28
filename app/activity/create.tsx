@@ -60,12 +60,10 @@ export default function CreateActivityScreen() {
         navigation.goBack();
       } else {
         const errorData = await response.json();
-        console.error("[FRONTEND] Error response from server:", errorData);
+
         alert(`Failed to create activity: ${errorData.error}`);
       }
-    } catch (error) {
-      console.error("[FRONTEND] Error creating activity:", error);
-    }
+    } catch (error) {}
   };
 
   return <ActivityForm onSubmit={handleCreate} />;

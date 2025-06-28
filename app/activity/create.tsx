@@ -6,8 +6,13 @@ import CustomButton from "@/components/ui/CustomButton";
 import AvailabilitySelector from "@/components/ui/AvailabilitySelector";
 import FormWrapper from "@/components/ui/FormWrapper";
 import { API_URL } from "@/api/config";
+import { useAuth } from "@/context/AuthContext";
+import { useNavigation } from "@react-navigation/native";
 
 export default function CreateActivityScreen() {
+  const navigation = useNavigation();
+  const { userId } = useAuth(); // Retrieve userId from AuthContext
+
   const [form, setForm] = useState({
     name: "",
     location: "",
@@ -29,18 +34,45 @@ export default function CreateActivityScreen() {
 
   const handleCreate = async () => {
     try {
+      const formData = new FormData();
+      formData.append("name", form.name);
+      formData.append("location", form.location);
+      formData.append("has_cost", form.has_cost ? "true" : "false"); // Convert boolean to string
+      formData.append("cost", form.cost === "" ? "" : form.cost); // Convert null to empty string
+      formData.append("url", form.url);
+      formData.append("description", form.description);
+      formData.append("user_id", String(userId)); // Ensure user_id is sent as a string
+
+      // Append images to FormData
+      form.images.forEach((imageUri, index) => {
+        const imageFile = {
+          uri: imageUri,
+          name: `image_${index}.jpg`,
+          type: "image/jpeg",
+        };
+        formData.append("images", imageFile);
+      });
+
+      console.log("[FRONTEND] FormData contents:");
+      formData.forEach((value, key) => {
+        console.log(`${key}: ${value}`);
+      });
+
       const response = await fetch(`${API_URL}/activities`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: formData,
       });
+
       if (response.ok) {
         alert("Activity created successfully!");
+        navigation.goBack(); // Navigate back to the previous page
       } else {
-        alert("Failed to create activity");
+        const errorData = await response.json();
+        console.error("[FRONTEND] Error response from server:", errorData);
+        alert(`Failed to create activity: ${errorData.error}`);
       }
     } catch (error) {
-      console.error("Error creating activity:", error);
+      console.error("[FRONTEND] Error creating activity:", error);
     }
   };
 
@@ -72,31 +104,11 @@ export default function CreateActivityScreen() {
 
   return (
     <FormWrapper>
-      <CustomInput
-        placeholder="Name"
-        value={form.name}
-        onChangeText={(text) => setForm({ ...form, name: text })}
-      />
-      <CustomInput
-        placeholder="Location"
-        value={form.location}
-        onChangeText={(text) => setForm({ ...form, location: text })}
-      />
-      <CustomInput
-        placeholder="Cost"
-        value={form.cost}
-        onChangeText={(text) => setForm({ ...form, cost: text })}
-      />
-      <CustomInput
-        placeholder="URL"
-        value={form.url}
-        onChangeText={(text) => setForm({ ...form, url: text })}
-      />
-      <CustomInput
-        placeholder="Description"
-        value={form.description}
-        onChangeText={(text) => setForm({ ...form, description: text })}
-      />
+      <CustomInput placeholder="Name" value={form.name} onChangeText={(text) => setForm({ ...form, name: text })} />
+      <CustomInput placeholder="Location" value={form.location} onChangeText={(text) => setForm({ ...form, location: text })} />
+      <CustomInput placeholder="Cost" value={form.cost} onChangeText={(text) => setForm({ ...form, cost: text })} />
+      <CustomInput placeholder="URL" value={form.url} onChangeText={(text) => setForm({ ...form, url: text })} />
+      <CustomInput placeholder="Description" value={form.description} onChangeText={(text) => setForm({ ...form, description: text })} />
 
       {/* Image Picker */}
       <CustomButton title="Add Images" onPress={pickImage} />
@@ -116,10 +128,7 @@ export default function CreateActivityScreen() {
       </ScrollView>
 
       {/* Availability Selector */}
-      <AvailabilitySelector
-        availability={form.availability}
-        onToggle={toggleAvailability}
-      />
+      <AvailabilitySelector availability={form.availability} onToggle={toggleAvailability} />
 
       <CustomButton title="Create Activity" onPress={handleCreate} />
     </FormWrapper>

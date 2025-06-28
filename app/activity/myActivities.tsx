@@ -61,7 +61,8 @@ export default function MyActivitiesScreen() {
       }}
       onPress={() =>
         router.push({
-          pathname: `/activityInfo?id=${item.id}`,
+          pathname: `/activity/edit`,
+          params: { activity: item },
         })
       }
     >

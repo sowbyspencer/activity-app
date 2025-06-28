@@ -70,6 +70,15 @@ export default function RootLayout() {
             }}
           />
 
+          {/* Edit Activity Screen with Custom Header */}
+          <Stack.Screen
+            name="activity/edit"
+            options={{
+              headerShown: true,
+              title: "Edit Activity",
+            }}
+          />
+
           {/* Not Found Screen */}
           <Stack.Screen name="+not-found" />
         </Stack>

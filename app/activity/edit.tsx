@@ -41,7 +41,12 @@ export default function EditActivityScreen() {
           name: `image_${index}.jpg`,
           type: "image/jpeg",
         };
-        formData.append("images", imageFile);
+
+        formData.append("images", {
+          uri: imageFile.uri,
+          type: imageFile.type,
+          name: imageFile.name,
+        });
       });
 
       const response = await fetch(`${API_URL}/activities/${activity.id}`, {

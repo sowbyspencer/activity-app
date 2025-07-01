@@ -28,40 +28,30 @@ export default function EditActivityScreen() {
   }) => {
     try {
       const formData = new FormData();
-      formData.append("name", form.name);
-      formData.append("location", form.location);
-      formData.append("has_cost", form.has_cost ? "true" : "false");
-      formData.append("cost", form.cost ?? "");
-      formData.append("url", form.url ?? "");
-      formData.append("description", form.description);
-
-      // Append availability fields
-      formData.append("available_sun", form.available_sun ? "true" : "false");
-      formData.append("available_mon", form.available_mon ? "true" : "false");
-      formData.append("available_tue", form.available_tue ? "true" : "false");
-      formData.append("available_wed", form.available_wed ? "true" : "false");
-      formData.append("available_thu", form.available_thu ? "true" : "false");
-      formData.append("available_fri", form.available_fri ? "true" : "false");
-      formData.append("available_sat", form.available_sat ? "true" : "false");
-
-      form.images.forEach((imageUri: string, index: number) => {
-        const imageFile = {
-          uri: imageUri,
-          name: `image_${index}.jpg`,
-          type: "image/jpeg",
-        };
-
-        formData.append("images", {
-          uri: imageFile.uri,
-          type: imageFile.type,
-          name: imageFile.name,
-        } as any);
-      });
-
+      // Only append fields that have changed
+      if (form.name !== activity.name) formData.append("name", form.name);
+      if (form.location !== activity.location) formData.append("location", form.location);
+      if (form.description !== activity.description) formData.append("description", form.description);
+      if (form.has_cost !== activity.has_cost) formData.append("has_cost", form.has_cost ? "true" : "false");
+      if (form.cost !== activity.cost) formData.append("cost", form.cost ?? "");
+      if (form.url !== activity.url) formData.append("url", form.url ?? "");
+      if (form.available_sun !== activity.available_sun) formData.append("available_sun", form.available_sun ? "true" : "false");
+      if (form.available_mon !== activity.available_mon) formData.append("available_mon", form.available_mon ? "true" : "false");
+      if (form.available_tue !== activity.available_tue) formData.append("available_tue", form.available_tue ? "true" : "false");
+      if (form.available_wed !== activity.available_wed) formData.append("available_wed", form.available_wed ? "true" : "false");
+      if (form.available_thu !== activity.available_thu) formData.append("available_thu", form.available_thu ? "true" : "false");
+      if (form.available_fri !== activity.available_fri) formData.append("available_fri", form.available_fri ? "true" : "false");
+      if (form.available_sat !== activity.available_sat) formData.append("available_sat", form.available_sat ? "true" : "false");
+      // Always send user_id for now
       formData.append("user_id", activity.user_id || "1"); // Default to 1 if undefined
 
+      // Debug: log FormData contents
+      for (let pair of formData.entries()) {
+        console.log("[FRONTEND] FormData", pair[0], pair[1]);
+      }
+
       const response = await fetch(`${API_URL}/activities/${activity.id}`, {
-        method: "PUT",
+        method: "POST",
         body: formData,
       });
 

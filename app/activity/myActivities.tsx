@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { View, Text, FlatList, TouchableOpacity, Image, SafeAreaView } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, Image, SafeAreaView, Alert } from "react-native";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/context/AuthContext";
 import { API_URL } from "@/api/config";
 import { useFocusEffect } from "@react-navigation/native";
+import SwipeableActivityItem from "@/components/ui/SwipeableActivityItem";
 
 type Activity = {
   id: number;
@@ -53,57 +54,81 @@ export default function MyActivitiesScreen() {
     }, [userId])
   );
 
+  const handleDelete = (activityId: number) => (closeSwipe?: () => void) => {
+    Alert.alert("Delete Activity", "Are you sure you want to delete this activity? This action cannot be undone.", [
+      { text: "Cancel", style: "cancel", onPress: () => closeSwipe && closeSwipe() },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            const response = await fetch(`${API_URL}/activities/${activityId}`, { method: "DELETE" });
+            if (response.ok) {
+              setActivities((prev) => prev.filter((a) => a.id !== activityId));
+            } else {
+              const errorData = await response.json();
+              alert(`Failed to delete activity: ${errorData.error}`);
+            }
+          } catch (error) {
+            alert("Error deleting activity. Please try again.");
+          }
+        },
+      },
+    ]);
+  };
+
   const renderActivityItem = ({ item }: { item: Activity }) => (
-    <TouchableOpacity
-      style={{
-        height: 50,
-        justifyContent: "center",
-        paddingHorizontal: 15,
-        borderBottomWidth: 1,
-        borderBottomColor: colorScheme === "dark" ? "#555" : "#ddd",
-      }}
-      onPress={() => {
-        // console.log("Navigating to edit screen with activity:", item);
-        router.push({
-          pathname: `/activity/edit`,
-          params: { activity: JSON.stringify(item) },
-        });
-      }}
-    >
-      <View style={{ flexDirection: "row", alignItems: "center" }}>
-        {/* Activity Image */}
-        {item.images && item.images.length > 0 ? (
-          <Image
-            source={{ uri: item.images[0] }}
+    <SwipeableActivityItem onDelete={handleDelete(item.id)}>
+      <TouchableOpacity
+        style={{
+          height: 50,
+          justifyContent: "center",
+          paddingHorizontal: 15,
+          borderBottomWidth: 1,
+          borderBottomColor: colorScheme === "dark" ? "#555" : "#ddd",
+        }}
+        onPress={() => {
+          router.push({
+            pathname: `/activity/edit`,
+            params: { activity: JSON.stringify(item) },
+          });
+        }}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          {/* Activity Image */}
+          {item.images && item.images.length > 0 ? (
+            <Image
+              source={{ uri: item.images[0] }}
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                marginRight: 10,
+              }}
+            />
+          ) : (
+            <View
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                backgroundColor: colorScheme === "dark" ? "#555" : "#D3D3D3",
+                marginRight: 10,
+              }}
+            />
+          )}
+          {/* Activity Name */}
+          <Text
             style={{
-              width: 40,
-              height: 40,
-              borderRadius: 20,
-              marginRight: 10,
+              fontSize: 16,
+              color: colorScheme === "dark" ? "white" : "black",
             }}
-          />
-        ) : (
-          <View
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 20,
-              backgroundColor: colorScheme === "dark" ? "#555" : "#D3D3D3",
-              marginRight: 10,
-            }}
-          />
-        )}
-        {/* Activity Name */}
-        <Text
-          style={{
-            fontSize: 16,
-            color: colorScheme === "dark" ? "white" : "black",
-          }}
-        >
-          {item.name}
-        </Text>
-      </View>
-    </TouchableOpacity>
+          >
+            {item.name}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    </SwipeableActivityItem>
   );
 
   return (

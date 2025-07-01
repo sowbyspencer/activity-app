@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { StatusBar } from "react-native";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -29,60 +30,62 @@ export default function RootLayout() {
   }
 
   return (
-    <AuthProvider>
-      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <StatusBar
-          backgroundColor={colorScheme === "dark" ? "black" : "transparent"}
-          barStyle={colorScheme === "dark" ? "light-content" : "dark-content"}
-        />
-        {/* Force remount of navigation stack when userId changes */}
-        <Stack key={userId || "guest"}>
-          {/* Hide header for the entire auth route group */}
-          <Stack.Screen name="auth" options={{ headerShown: false }} />
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <AuthProvider>
+        <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+          <StatusBar
+            backgroundColor={colorScheme === "dark" ? "black" : "transparent"}
+            barStyle={colorScheme === "dark" ? "light-content" : "dark-content"}
+          />
+          {/* Force remount of navigation stack when userId changes */}
+          <Stack key={userId || "guest"}>
+            {/* Hide header for the entire auth route group */}
+            <Stack.Screen name="auth" options={{ headerShown: false }} />
 
-          {/* Login Page (Initial Screen) */}
-          <Stack.Screen name="auth/login" options={{ headerShown: false }} />
+            {/* Login Page (Initial Screen) */}
+            <Stack.Screen name="auth/login" options={{ headerShown: false }} />
 
-          {/* Tabs (Main Screens) */}
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            {/* Tabs (Main Screens) */}
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
 
-          {/* Profile Screen with Custom Header */}
-          <Stack.Screen name="profile" options={{ headerShown: true, title: "My Profile" }} />
+            {/* Profile Screen with Custom Header */}
+            <Stack.Screen name="profile" options={{ headerShown: true, title: "My Profile" }} />
 
-          {/* My Activities Screen with Custom Header */}
-          <Stack.Screen name="activity/myActivities" options={{ headerShown: true, title: "My Activities" }} />
+            {/* My Activities Screen with Custom Header */}
+            <Stack.Screen name="activity/myActivities" options={{ headerShown: true, title: "My Activities" }} />
 
-          {/* Activity Info Screen with Custom Header */}
-          <Stack.Screen
-            name="activityInfo"
-            options={({ route }) => {
-              const title = (route.params && (route.params as any).activity && (route.params as any).activity.name) || "Activity Info";
-              return {
-                title,
+            {/* Activity Info Screen with Custom Header */}
+            <Stack.Screen
+              name="activityInfo"
+              options={({ route }) => {
+                const title = (route.params && (route.params as any).activity && (route.params as any).activity.name) || "Activity Info";
+                return {
+                  title,
+                  headerShown: true,
+                  headerStyle: {
+                    backgroundColor: colorScheme === "dark" ? "#222" : "#f5f5f5",
+                  },
+                  headerBackTitleVisible: false,
+                  presentation: "transparentModal",
+                  animation: "fade",
+                };
+              }}
+            />
+
+            {/* Edit Activity Screen with Custom Header */}
+            <Stack.Screen
+              name="activity/edit"
+              options={{
                 headerShown: true,
-                headerStyle: {
-                  backgroundColor: colorScheme === "dark" ? "#222" : "#f5f5f5",
-                },
-                headerBackTitleVisible: false,
-                presentation: "transparentModal",
-                animation: "fade",
-              };
-            }}
-          />
+                title: "Edit Activity",
+              }}
+            />
 
-          {/* Edit Activity Screen with Custom Header */}
-          <Stack.Screen
-            name="activity/edit"
-            options={{
-              headerShown: true,
-              title: "Edit Activity",
-            }}
-          />
-
-          {/* Not Found Screen */}
-          <Stack.Screen name="+not-found" />
-        </Stack>
-      </ThemeProvider>
-    </AuthProvider>
+            {/* Not Found Screen */}
+            <Stack.Screen name="+not-found" />
+          </Stack>
+        </ThemeProvider>
+      </AuthProvider>
+    </GestureHandlerRootView>
   );
 }

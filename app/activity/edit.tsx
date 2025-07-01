@@ -68,6 +68,8 @@ export default function EditActivityScreen() {
       for (let pair of formData.entries()) {
         console.log("[FRONTEND] FormData", pair[0], pair[1]);
       }
+      // Log the images array being submitted
+      console.log("[FRONTEND] Submitting images array:", form.images);
 
       const response = await fetch(`${API_URL}/activities/${activity.id}`, {
         method: "PUT",

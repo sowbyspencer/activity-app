@@ -72,6 +72,10 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
         newErrors.url = "Please enter a valid URL (including http:// or https://).";
       }
     }
+    // Require at least one image
+    if (!form.images || form.images.length === 0) {
+      newErrors.images = "Please add at least one image.";
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -141,6 +145,7 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
       />
 
       <CustomButton title="Add Images" onPress={pickImage} color="#007AFF" />
+      {errors.images && <Text style={{ color: "#FF3B30", marginBottom: 10, marginLeft: 5, fontSize: 13 }}>{errors.images}</Text>}
       <ScrollView
         horizontal
         style={{ marginBottom: 10 }}

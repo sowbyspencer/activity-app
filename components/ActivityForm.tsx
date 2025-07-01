@@ -47,14 +47,6 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
   const [showRemoveButtons, setShowRemoveButtons] = useState(false);
   const [errors, setErrors] = useState({});
 
-  useEffect(() => {
-    console.log("ActivityForm initialized with:", form);
-  }, []);
-
-  useEffect(() => {
-    console.log("Form state updated:", form);
-  }, [form]);
-
   const validate = () => {
     const newErrors: any = {};
     if (!form.name.trim()) newErrors.name = "Name is required.";
@@ -97,9 +89,11 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
     });
 
     if (!result.canceled) {
+      const uri = result.assets[0].uri;
+      console.log("[EditActivity] Selected image URI:", uri);
       setForm((prev) => ({
         ...prev,
-        images: [...prev.images, result.assets[0].uri],
+        images: [...prev.images, uri],
       }));
     }
   };

@@ -2,10 +2,12 @@ import React from "react";
 import { API_URL } from "@/api/config";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import ActivityForm from "@/components/ActivityForm";
+import { useAuth } from "@/context/AuthContext";
 
 export default function EditActivityScreen() {
   const navigation = useNavigation();
   const route = useRoute();
+  const { userId } = useAuth();
   const activity = JSON.parse(route.params.activity); // Parse activity data from route params
 
   //   console.log("[EditActivityScreen] Initializing with activity:", activity);
@@ -43,7 +45,7 @@ export default function EditActivityScreen() {
       if (form.available_fri !== activity.available_fri) formData.append("available_fri", form.available_fri ? "true" : "false");
       if (form.available_sat !== activity.available_sat) formData.append("available_sat", form.available_sat ? "true" : "false");
       // Always send user_id for now
-      formData.append("user_id", activity.user_id || "1"); // Default to 1 if undefined
+      formData.append("user_id", userId ? String(userId) : ""); // Use real user id from AuthContext
 
       // Debug: log FormData contents
       for (let pair of formData.entries()) {
@@ -51,7 +53,7 @@ export default function EditActivityScreen() {
       }
 
       const response = await fetch(`${API_URL}/activities/${activity.id}`, {
-        method: "POST",
+        method: "PUT",
         body: formData,
       });
 

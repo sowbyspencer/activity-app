@@ -51,6 +51,13 @@ Join our community of developers creating universal apps.
 
 ## Version History
 
+### v1.0.8 (June 30, 2025)
+
+- Improved activity editing to update only changed fields, including robust image update, deletion, and addition logic (backend and frontend).
+- Implemented full activity deletion, with backend and server filesystem cleanup, and added swipe-to-delete with confirmation and animation in My Activities (only one delete button visible at a time).
+- Enhanced ActivityForm and AvailabilitySelector UI, including validation and error handling.
+- Fixed Create Activity page header and ensured consistent image URL handling and user ID integration throughout activity features.
+
 ### v1.0.7 (June 19, 2025)
 
 - Implemented "unlike/leave activity" feature:

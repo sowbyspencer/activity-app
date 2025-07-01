@@ -3,14 +3,14 @@ import { API_URL } from "@/api/config";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import ActivityForm from "@/components/ActivityForm";
 import { useAuth } from "@/context/AuthContext";
+import { Alert, View } from "react-native";
+import CustomButton from "@/components/ui/CustomButton";
 
 export default function EditActivityScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const { userId } = useAuth();
   const activity = JSON.parse(route.params.activity); // Parse activity data from route params
-
-  //   console.log("[EditActivityScreen] Initializing with activity:", activity);
 
   const handleEdit = async (form: {
     name: string;
@@ -64,13 +64,6 @@ export default function EditActivityScreen() {
         });
       }
 
-      // Debug: log FormData contents
-      for (let pair of formData.entries()) {
-        console.log("[FRONTEND] FormData", pair[0], pair[1]);
-      }
-      // Log the images array being submitted
-      console.log("[FRONTEND] Submitting images array:", form.images);
-
       const response = await fetch(`${API_URL}/activities/${activity.id}`, {
         method: "PUT",
         body: formData,
@@ -89,6 +82,32 @@ export default function EditActivityScreen() {
     }
   };
 
+  const handleDelete = async () => {
+    Alert.alert("Delete Activity", "Are you sure you want to delete this activity? This action cannot be undone.", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            const response = await fetch(`${API_URL}/activities/${activity.id}`, {
+              method: "DELETE",
+            });
+            if (response.ok) {
+              alert("Activity deleted successfully!");
+              navigation.goBack();
+            } else {
+              const errorData = await response.json();
+              alert(`Failed to delete activity: ${errorData.error}`);
+            }
+          } catch (error) {
+            alert("Error deleting activity. Please try again.");
+          }
+        },
+      },
+    ]);
+  };
+
   const parsedActivity = {
     ...activity,
     available_sun: activity.available_sun === "true" || activity.available_sun === true || !!activity.available_sun,
@@ -100,5 +119,12 @@ export default function EditActivityScreen() {
     available_sat: activity.available_sat === "true" || activity.available_sat === true || !!activity.available_sat,
   };
 
-  return <ActivityForm initialData={parsedActivity} onSubmit={handleEdit} />;
+  return (
+    <View style={{ flex: 1 }}>
+      <ActivityForm initialData={parsedActivity} onSubmit={handleEdit} />
+      <View style={{ paddingHorizontal: 20, marginBottom: 24 }}>
+        <CustomButton title="Delete Activity" onPress={handleDelete} color="#B00020" />
+      </View>
+    </View>
+  );
 }

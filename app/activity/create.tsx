@@ -29,7 +29,12 @@ export default function CreateActivityScreen() {
       formData.append("name", form.name);
       formData.append("location", form.location);
       formData.append("has_cost", form.has_cost ? "true" : "false");
-      formData.append("cost", form.cost === "" ? "" : form.cost);
+
+      // Normalize cost: convert 'Free', 'none', or blank to null
+      let cost = form.cost;
+      if (/^(free|none)$/i.test(cost.trim()) || cost.trim() === "") cost = null;
+      formData.append("cost", cost === null ? "" : cost);
+
       formData.append("url", form.url);
       formData.append("description", form.description);
       formData.append("user_id", String(userId));

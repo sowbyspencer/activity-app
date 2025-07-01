@@ -45,6 +45,7 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
   });
 
   const [showRemoveButtons, setShowRemoveButtons] = useState(false);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     console.log("ActivityForm initialized with:", form);
@@ -54,12 +55,33 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
     console.log("Form state updated:", form);
   }, [form]);
 
-  const handleSubmit = async () => {
-    try {
-      await onSubmit(form);
-    } catch (error) {
-      console.error("Error submitting activity form:", error);
+  const validate = () => {
+    const newErrors: any = {};
+    if (!form.name.trim()) newErrors.name = "Name is required.";
+    if (!form.location.trim()) newErrors.location = "Location is required.";
+    // Cost: allow empty, 'free', or 'none' (case-insensitive) as null
+    if (form.cost && !/^(free|none)$/i.test(form.cost.trim()) && isNaN(Number(form.cost))) {
+      newErrors.cost = "Cost must be a number, 'Free', or 'None'. Leave blank if not applicable.";
     }
+    if (!form.description.trim()) newErrors.description = "Description is required.";
+    // URL: if not empty, must be a valid URL
+    if (form.url && form.url.trim() !== "") {
+      try {
+        new URL(form.url.trim());
+      } catch {
+        newErrors.url = "Please enter a valid URL (including http:// or https://).";
+      }
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    if (!validate()) return;
+    // Normalize cost
+    let cost = form.cost;
+    if (form.has_cost && (/^(free|none)$/i.test(cost.trim()) || cost.trim() === "")) cost = null;
+    await onSubmit({ ...form, cost });
   };
 
   const pickImage = async () => {
@@ -102,11 +124,21 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
 
   return (
     <FormWrapper>
-      <CustomInput placeholder="Name" value={form.name} onChangeText={(text) => setForm({ ...form, name: text })} />
-      <CustomInput placeholder="Location" value={form.location} onChangeText={(text) => setForm({ ...form, location: text })} />
-      <CustomInput placeholder="Cost" value={form.cost} onChangeText={(text) => setForm({ ...form, cost: text })} />
-      <CustomInput placeholder="URL" value={form.url} onChangeText={(text) => setForm({ ...form, url: text })} />
-      <CustomInput placeholder="Description" value={form.description} onChangeText={(text) => setForm({ ...form, description: text })} />
+      <CustomInput placeholder="Name" value={form.name} onChangeText={(text) => setForm({ ...form, name: text })} error={errors.name} />
+      <CustomInput
+        placeholder="Location"
+        value={form.location}
+        onChangeText={(text) => setForm({ ...form, location: text })}
+        error={errors.location}
+      />
+      <CustomInput placeholder="Cost" value={form.cost} onChangeText={(text) => setForm({ ...form, cost: text })} error={errors.cost} />
+      <CustomInput placeholder="URL" value={form.url} onChangeText={(text) => setForm({ ...form, url: text })} error={errors.url} />
+      <CustomInput
+        placeholder="Description"
+        value={form.description}
+        onChangeText={(text) => setForm({ ...form, description: text })}
+        error={errors.description}
+      />
 
       <CustomButton title="Add Images" onPress={pickImage} color="#007AFF" />
       <ScrollView

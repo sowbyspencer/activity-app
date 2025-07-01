@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { View, Text, FlatList, TouchableOpacity, Image, SafeAreaView, Alert } from "react-native";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/context/AuthContext";
 import { API_URL } from "@/api/config";
 import { useFocusEffect } from "@react-navigation/native";
-import SwipeableActivityItem from "@/components/ui/SwipeableActivityItem";
+import SwipeableActivityItem, { SwipeableActivityItemHandle } from "@/components/ui/SwipeableActivityItem";
 
 type Activity = {
   id: number;
@@ -30,6 +30,12 @@ export default function MyActivitiesScreen() {
   const router = useRouter();
   const { userId } = useAuth();
   const [activities, setActivities] = useState<Activity[]>([]);
+
+  // Track the currently open swipeable row
+  const openRowRef = useRef<SwipeableActivityItemHandle | null>(null);
+
+  // Store refs for each row by activity id
+  const rowRefs = useRef<{ [key: number]: SwipeableActivityItemHandle | null }>({});
 
   useFocusEffect(
     React.useCallback(() => {
@@ -77,8 +83,21 @@ export default function MyActivitiesScreen() {
     ]);
   };
 
+  const handleRowOpen = (id: number) => {
+    // Close any previously open row
+    Object.entries(rowRefs.current).forEach(([key, ref]) => {
+      if (Number(key) !== id && ref) {
+        ref.close();
+      }
+    });
+  };
+
   const renderActivityItem = ({ item }: { item: Activity }) => (
-    <SwipeableActivityItem onDelete={handleDelete(item.id)}>
+    <SwipeableActivityItem
+      ref={ref => (rowRefs.current[item.id] = ref)}
+      onDelete={handleDelete(item.id)}
+      onSwipeableOpen={() => handleRowOpen(item.id)}
+    >
       <TouchableOpacity
         style={{
           height: 50,

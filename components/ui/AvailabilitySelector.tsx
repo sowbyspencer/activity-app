@@ -84,13 +84,18 @@ export default function AvailabilitySelector({
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
-    flexWrap: "wrap",
+    flexWrap: "nowrap", // Prevent wrapping
+    justifyContent: "space-between", // Spread days evenly
     marginBottom: 10,
+    alignItems: "center",
   },
   day: {
-    margin: 5,
-    padding: 10,
+    marginHorizontal: 2,
+    paddingVertical: 8,
+    paddingHorizontal: 8,
     borderWidth: 1,
     borderRadius: 5,
+    minWidth: 36,
+    alignItems: "center",
   },
 });

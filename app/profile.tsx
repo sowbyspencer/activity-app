@@ -304,50 +304,55 @@ export default function ProfileScreen() {
           </>
         )}
       </FormWrapper>
-      <View style={{ marginTop: 32, alignItems: "center" }}>
-        <CustomButton
-          title="Sign Out"
-          color="#FF3B30"
-          onPress={async () => {
-            Alert.alert("Sign Out", "Are you sure you want to sign out?", [
-              { text: "Cancel", style: "cancel" },
-              {
-                text: "Sign Out",
-                style: "destructive",
-                onPress: async () => {
-                  try {
-                    await setUserId(null); // Ensure AsyncStorage is cleared
-                    const storedUserId = await AsyncStorage.getItem("userId");
-                    console.log("[SignOut] AsyncStorage userId after sign out:", storedUserId);
-                    if (storedUserId !== null) {
-                      console.warn("[SignOut] userId was not cleared from AsyncStorage!");
-                    }
-                    router.replace("/auth/login");
-                  } catch (err) {
-                    console.error("[SignOut] Error during sign out:", err);
-                    Alert.alert("Sign Out Error", "Failed to sign out. Please try again.");
-                  }
-                },
-              },
-            ]);
-          }}
-        />
-      </View>
-      <View style={{ marginTop: 64, alignItems: "center", marginBottom: 24 }}>
-        <CustomButton
-          title="Delete Account"
-          color="#B00020"
-          onPress={() => {
-            Alert.alert("Delete Account", "You will confirm deletion with a password. Are you sure you want to delete your account?", [
-              { text: "Cancel", style: "cancel" },
-              {
-                text: "Continue",
-                style: "destructive",
-                onPress: () => setShowDeleteModal(true),
-              },
-            ]);
-          }}
-        />
+      {/* Move Sign Out and Delete Account buttons to the bottom row, left and right, with padding from screen edges */}
+      <View style={{ paddingHorizontal: 20 }}>
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 64, marginBottom: 24 }}>
+          <View style={{ flex: 1, alignItems: "flex-start" }}>
+            <CustomButton
+              title="Delete Account"
+              color="#B00020"
+              onPress={() => {
+                Alert.alert("Delete Account", "You will confirm deletion with a password. Are you sure you want to delete your account?", [
+                  { text: "Cancel", style: "cancel" },
+                  {
+                    text: "Continue",
+                    style: "destructive",
+                    onPress: () => setShowDeleteModal(true),
+                  },
+                ]);
+              }}
+            />
+          </View>
+          <View style={{ flex: 1, alignItems: "flex-end" }}>
+            <CustomButton
+              title="Sign Out"
+              color="#FF3B30"
+              onPress={async () => {
+                Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+                  { text: "Cancel", style: "cancel" },
+                  {
+                    text: "Sign Out",
+                    style: "destructive",
+                    onPress: async () => {
+                      try {
+                        await setUserId(null); // Ensure AsyncStorage is cleared
+                        const storedUserId = await AsyncStorage.getItem("userId");
+                        console.log("[SignOut] AsyncStorage userId after sign out:", storedUserId);
+                        if (storedUserId !== null) {
+                          console.warn("[SignOut] userId was not cleared from AsyncStorage!");
+                        }
+                        router.replace("/auth/login");
+                      } catch (err) {
+                        console.error("[SignOut] Error during sign out:", err);
+                        Alert.alert("Sign Out Error", "Failed to sign out. Please try again.");
+                      }
+                    },
+                  },
+                ]);
+              }}
+            />
+          </View>
+        </View>
       </View>
       {/* Delete Account Modal */}
       <Modal visible={showDeleteModal} transparent animationType="slide" onRequestClose={() => setShowDeleteModal(false)}>

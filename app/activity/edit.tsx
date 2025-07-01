@@ -47,6 +47,23 @@ export default function EditActivityScreen() {
       // Always send user_id for now
       formData.append("user_id", userId ? String(userId) : ""); // Use real user id from AuthContext
 
+      // Handle images: only send new images as files, keep existing URLs as-is
+      if (form.images && Array.isArray(form.images)) {
+        form.images.forEach((img) => {
+          if (img.startsWith("file://") || img.startsWith("content://")) {
+            // New image picked from device, send as file
+            formData.append("images", {
+              uri: img,
+              name: "activity-image.jpg",
+              type: "image/jpeg",
+            });
+          } else {
+            // Existing image URL, send as string (backend should merge)
+            formData.append("existingImages", img);
+          }
+        });
+      }
+
       // Debug: log FormData contents
       for (let pair of formData.entries()) {
         console.log("[FRONTEND] FormData", pair[0], pair[1]);

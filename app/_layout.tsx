@@ -81,6 +81,15 @@ export default function RootLayout() {
               }}
             />
 
+            {/* Create Activity Screen with Custom Header */}
+            <Stack.Screen
+              name="activity/create"
+              options={{
+                headerShown: true,
+                title: "Create Activity",
+              }}
+            />
+
             {/* Not Found Screen */}
             <Stack.Screen name="+not-found" />
           </Stack>

@@ -94,7 +94,7 @@ export default function MyActivitiesScreen() {
 
   const renderActivityItem = ({ item }: { item: Activity }) => (
     <SwipeableActivityItem
-      ref={ref => (rowRefs.current[item.id] = ref)}
+      ref={(ref) => (rowRefs.current[item.id] = ref)}
       onDelete={handleDelete(item.id)}
       onSwipeableOpen={() => handleRowOpen(item.id)}
     >

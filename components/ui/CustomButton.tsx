@@ -2,18 +2,28 @@ import React from "react";
 import { TouchableOpacity, Text, StyleSheet } from "react-native";
 import { useColorScheme } from "@/hooks/useColorScheme";
 
-export default function CustomButton({ title, onPress, color, ...props }) {
-  const colorScheme = useColorScheme();
+interface CustomButtonProps {
+  title: string;
+  onPress: () => void;
+  color?: string;
+  disabled?: boolean;
+  style?: any;
+  opacity?: number;
+}
 
+export default function CustomButton({ title, onPress, color, disabled, style, opacity, ...props }: CustomButtonProps) {
+  const colorScheme = useColorScheme();
   return (
     <TouchableOpacity
       onPress={onPress}
+      disabled={disabled}
       style={[
         styles.button,
         {
-          backgroundColor:
-            color || (colorScheme === "dark" ? "#444" : "#007BFF"),
+          backgroundColor: color || (colorScheme === "dark" ? "#444" : "#007BFF"),
+          opacity: typeof opacity === "number" ? opacity : disabled ? 0.5 : 1,
         },
+        style,
       ]}
       {...props}
     >

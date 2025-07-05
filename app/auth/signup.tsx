@@ -131,6 +131,9 @@ export default function SignupScreen() {
     }
   };
 
+  // Determine if all fields are filled and image is selected
+  const isFormComplete = form.email && form.password && form.confirmPassword && form.first_name && form.last_name && profileImage;
+
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
@@ -217,7 +220,7 @@ export default function SignupScreen() {
             </View>
           ) : null}
           {profileImageError ? <Text style={{ color: "#B00020", marginBottom: 10 }}>{profileImageError}</Text> : null}
-          <CustomButton title="Sign Up" onPress={handleSignup} color="#34C759" />
+          <CustomButton title="Sign Up" onPress={handleSignup} color="#34C759" disabled={!isFormComplete} opacity={isFormComplete ? 1 : 0.25} />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

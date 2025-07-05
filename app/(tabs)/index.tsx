@@ -1,10 +1,11 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
-import { View, Text, Image, Animated, PanResponder, Dimensions, ActivityIndicator, TouchableOpacity } from "react-native";
+import { View, Text, Image, Animated, PanResponder, Dimensions, ActivityIndicator, TouchableOpacity, Alert } from "react-native";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { fetchActivities, swipeActivity } from "@/api/activityService";
 import { useAuth } from "@/context/AuthContext";
 import { API_URL } from "@/api/config";
+import { Ionicons } from "@expo/vector-icons";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -166,6 +167,35 @@ export default function ActivitySwiper() {
     },
   });
 
+  // Add this handler for refresh
+  const handleRefresh = () => {
+    Alert.alert("Refresh Declined Activities", "Do you want to refresh Declined activities?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Refresh",
+        style: "destructive",
+        onPress: async () => {
+          setLoading(true);
+          // Call backend to reset declined activities for this user
+          await fetch(`${API_URL}/activities/reset-swipes`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId: Number(userId) }),
+          });
+          // Fetch new activities
+          const newActivities = await fetchActivities(Number(userId));
+          setActivities((prev) => {
+            // Filter out activities already in the stack by id
+            const existingIds = new Set(prev.map((a) => a.id));
+            const uniqueNew = newActivities.filter((a: Activity) => !existingIds.has(a.id));
+            return [...prev, ...uniqueNew];
+          });
+          setLoading(false);
+        },
+      },
+    ]);
+  };
+
   if (loading) {
     return (
       <View
@@ -229,6 +259,20 @@ export default function ActivitySwiper() {
         backgroundColor: colorScheme === "dark" ? "black" : "white",
       }}
     >
+      {/* Refresh Button */}
+      <TouchableOpacity
+        onPress={handleRefresh}
+        style={{
+          position: "absolute",
+          top: 18,
+          right: 18,
+          zIndex: 10,
+          opacity: 0.5,
+        }}
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+      >
+        <Ionicons name="refresh" size={32} color={colorScheme === "dark" ? "white" : "black"} />
+      </TouchableOpacity>
       {/* Activity Card */}
       <Animated.View
         {...panResponder.panHandlers}

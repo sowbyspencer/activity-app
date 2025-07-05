@@ -51,6 +51,16 @@ Join our community of developers creating universal apps.
 
 ## Version History
 
+### v1.0.10 (July 5, 2025)
+
+- Added loading overlays (spinners) for all major actions: Create, Edit, Delete, Signup, and Profile Update, with user-friendly status messages (e.g., "Creating Activity...", "Updating Activity...", etc.).
+- Improved input focus management and keyboard navigation for all forms (Signup, Activity, Profile), including ref forwarding and scrollable layouts.
+- Disabled Submit/Sign Up buttons until all required fields (and images) are filled, with clear inactive styling.
+- Enhanced Signup and Profile screens with required image upload, preview, and validation.
+- Added refresh functionality for declined activities in Settings, with confirmation alerts and improved stack refresh logic.
+- Updated documentation and work plan to reflect new user testing workflow, EAS Build/OTA steps, and detailed QA process.
+- General UI/UX polish, bugfixes, and documentation updates in preparation for user testing and demo.
+
 ### v1.0.8 (June 30, 2025)
 
 - Improved activity editing to update only changed fields, including robust image update, deletion, and addition logic (backend and frontend).

@@ -1,13 +1,8 @@
 import React from "react";
-import {
-  View,
-  Text,
-  SafeAreaView,
-  FlatList,
-  TouchableOpacity,
-} from "react-native";
+import { View, Text, SafeAreaView, FlatList, TouchableOpacity, Alert } from "react-native";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { useRouter } from "expo-router";
+import { API_URL } from "@/api/config";
 
 export default function SettingsScreen() {
   const colorScheme = useColorScheme();
@@ -15,13 +10,37 @@ export default function SettingsScreen() {
 
   const userId = 1; // Replace with dynamic user ID if available
 
+  const handleRefreshDeclined = async () => {
+    Alert.alert("Refresh Declined Activities", "Do you want to refresh Declined activities?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Refresh",
+        style: "destructive",
+        onPress: async () => {
+          await fetch(`${API_URL}/activities/reset-swipes`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId }),
+          });
+          Alert.alert("Success", "Declined activities have been refreshed.", [
+            {
+              text: "OK",
+              onPress: () => router.replace("/"),
+            },
+          ]);
+        },
+      },
+    ]);
+  };
+
   const options = [
     {
       id: "1",
       title: "My Profile",
       navigateTo: { pathname: "profile", params: { userId } },
-    }, // Pass user ID
+    },
     { id: "2", title: "My Activities", navigateTo: "/activity/myActivities" },
+    { id: "3", title: "Refresh Declined Activities", onPress: handleRefreshDeclined },
   ];
 
   return (
@@ -64,7 +83,7 @@ export default function SettingsScreen() {
               borderBottomWidth: 1,
               borderBottomColor: colorScheme === "dark" ? "#555" : "#ddd",
             }}
-            onPress={() => router.push(item.navigateTo)} // Updated navigation
+            onPress={() => (item.onPress ? item.onPress() : router.push(item.navigateTo))}
           >
             <Text
               style={{

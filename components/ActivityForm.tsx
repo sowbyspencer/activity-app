@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { ScrollView, Image, TouchableOpacity, View, Text } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import CustomInput from "@/components/ui/CustomInput";
@@ -46,6 +46,13 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
 
   const [showRemoveButtons, setShowRemoveButtons] = useState(false);
   const [errors, setErrors] = useState({});
+
+  // Refs for input focus
+  const nameRef = useRef(null);
+  const locationRef = useRef(null);
+  const costRef = useRef(null);
+  const urlRef = useRef(null);
+  const descriptionRef = useRef(null);
 
   const validate = () => {
     const newErrors: any = {};
@@ -120,22 +127,70 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
     setShowRemoveButtons(false);
   };
 
+  // Determine if all required fields are filled (for disabling Submit)
+  const isFormComplete =
+    form.name.trim() &&
+    form.location.trim() &&
+    form.description.trim() &&
+    (!form.cost || !isNaN(Number(form.cost)) || /^(free|none)$/i.test(form.cost.trim())) &&
+    (!form.url ||
+      (() => {
+        try {
+          new URL(form.url.trim());
+          return true;
+        } catch {
+          return false;
+        }
+      })()) &&
+    form.images &&
+    form.images.length > 0;
+
   return (
     <FormWrapper>
-      <CustomInput placeholder="Name" value={form.name} onChangeText={(text) => setForm({ ...form, name: text })} error={errors.name} />
       <CustomInput
+        ref={nameRef}
+        placeholder="Name"
+        value={form.name}
+        onChangeText={(text) => setForm({ ...form, name: text })}
+        error={errors.name}
+        returnKeyType="next"
+        onSubmitEditing={() => locationRef.current && locationRef.current.focus()}
+      />
+      <CustomInput
+        ref={locationRef}
         placeholder="Location"
         value={form.location}
         onChangeText={(text) => setForm({ ...form, location: text })}
         error={errors.location}
+        returnKeyType="next"
+        onSubmitEditing={() => costRef.current && costRef.current.focus()}
       />
-      <CustomInput placeholder="Cost" value={form.cost} onChangeText={(text) => setForm({ ...form, cost: text })} error={errors.cost} />
-      <CustomInput placeholder="URL" value={form.url} onChangeText={(text) => setForm({ ...form, url: text })} error={errors.url} />
       <CustomInput
+        ref={costRef}
+        placeholder="Cost"
+        value={form.cost}
+        onChangeText={(text) => setForm({ ...form, cost: text })}
+        error={errors.cost}
+        returnKeyType="next"
+        onSubmitEditing={() => urlRef.current && urlRef.current.focus()}
+      />
+      <CustomInput
+        ref={urlRef}
+        placeholder="URL"
+        value={form.url}
+        onChangeText={(text) => setForm({ ...form, url: text })}
+        error={errors.url}
+        returnKeyType="next"
+        onSubmitEditing={() => descriptionRef.current && descriptionRef.current.focus()}
+      />
+      <CustomInput
+        ref={descriptionRef}
         placeholder="Description"
         value={form.description}
         onChangeText={(text) => setForm({ ...form, description: text })}
         error={errors.description}
+        returnKeyType="done"
+        onSubmitEditing={handleSubmit}
       />
 
       <CustomButton title="Add Images" onPress={pickImage} color="#007AFF" />
@@ -191,7 +246,7 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
         onToggle={(day) => toggleAvailability(`available_${day}`)}
       />
 
-      <CustomButton title="Submit" onPress={handleSubmit} color="#007AFF" />
+      <CustomButton title="Submit" onPress={handleSubmit} color="#007AFF" disabled={!isFormComplete} opacity={!isFormComplete ? 0.5 : 1} />
     </FormWrapper>
   );
 }

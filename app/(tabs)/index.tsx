@@ -41,27 +41,23 @@ export default function ActivitySwiper() {
   const translateY = useRef(new Animated.Value(0)).current;
 
   // Fetch data
-  useEffect(() => {
-    console.log("[ActivitySwiper] useEffect RUN, userId:", userId);
+  const fetchAndSetActivities = useCallback(async () => {
     if (!userId) return;
     setActivities([]);
     setLoading(true);
-    let isActive = true;
-    const loadActivities = async () => {
-      console.log("[ActivitySwiper] fetchActivities CALLED, userId:", userId);
-      const data = await fetchActivities(userId);
-      if (isActive) {
-        console.log("[ActivitySwiper] setActivities CALLED, activities.length:", data.length);
-        setActivities(data);
-        setLoading(false);
-      }
-    };
-    loadActivities();
+    const data = await fetchActivities(userId);
+    setActivities(data);
+    setLoading(false);
+  }, [userId]);
+
+  useEffect(() => {
+    console.log("[ActivitySwiper] useEffect RUN, userId:", userId);
+    if (!userId) return;
+    fetchAndSetActivities();
     return () => {
-      isActive = false;
       console.log("[ActivitySwiper] useEffect CLEANUP, userId:", userId);
     };
-  }, [userId]);
+  }, [userId, fetchAndSetActivities]);
 
   // Reset state when user logs out
   useEffect(() => {
@@ -74,18 +70,29 @@ export default function ActivitySwiper() {
     }
   }, [userId]);
 
+  // Refresh activities every time the page is focused
   useFocusEffect(
     useCallback(() => {
+      if (userId) {
+        fetchAndSetActivities();
+      }
       translateX.setValue(0);
       translateY.setValue(0);
-    }, [])
+    }, [userId, fetchAndSetActivities, translateX, translateY])
   );
 
   const TAP_THRESHOLD = 10; // Movement threshold to detect taps
 
   // Helper: Remove current activity from stack
   const removeCurrentActivity = () => {
-    setActivities((prev) => prev.filter((_, idx) => idx !== currentActivity));
+    setActivities((prev) => {
+      const newActivities = prev.filter((_, idx) => idx !== currentActivity);
+      if (newActivities.length === 0 && userId) {
+        // Refresh activities if stack is empty
+        fetchAndSetActivities();
+      }
+      return newActivities;
+    });
     setCurrentActivity(0);
     setCurrentImage(0);
   };

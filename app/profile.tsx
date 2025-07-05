@@ -85,6 +85,7 @@ export default function ProfileScreen() {
         formData.append("lastName", form.lastName);
         formData.append("email", form.email);
 
+        // If profileImage is a local file, append it as a file
         if (form.profileImage && !form.profileImage.startsWith("http")) {
           const imageFile = {
             uri: form.profileImage,
@@ -94,7 +95,11 @@ export default function ProfileScreen() {
           formData.append("profileImage", imageFile as any);
         }
 
-        console.log("Sending formData:", formData);
+        // Log FormData contents for debugging
+        console.log("Sending formData:");
+        for (let pair of formData.entries()) {
+          console.log(pair[0], pair[1]);
+        }
 
         const updatedProfile = await updateUserProfile(Number(userId), formData);
         if (updatedProfile) {

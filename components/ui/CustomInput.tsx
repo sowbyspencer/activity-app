@@ -1,29 +1,18 @@
-import React from "react";
-import { TextInput, StyleSheet, View, Text } from "react-native";
+import React, { forwardRef } from "react";
+import { TextInput, StyleSheet, View, Text, TextInputProps } from "react-native";
 import { useColorScheme } from "@/hooks/useColorScheme";
 
-interface CustomInputProps {
-  placeholder?: string;
-  value: string;
-  onChangeText: (text: string) => void;
-  editable?: boolean;
+interface CustomInputProps extends TextInputProps {
   error?: string;
-  [key: string]: any;
 }
 
-export default function CustomInput({
-  placeholder,
-  value,
-  onChangeText,
-  editable = true,
-  error,
-  ...props
-}: CustomInputProps) {
+const CustomInput = forwardRef<TextInput, CustomInputProps>(({ placeholder, value, onChangeText, editable = true, error, ...props }, ref) => {
   const colorScheme = useColorScheme();
 
   return (
     <View style={{ width: "100%" }}>
       <TextInput
+        ref={ref}
         placeholder={placeholder}
         placeholderTextColor={colorScheme === "dark" ? "#aaa" : "#666"}
         value={value}
@@ -54,7 +43,9 @@ export default function CustomInput({
       ) : null}
     </View>
   );
-}
+});
+
+CustomInput.displayName = "CustomInput";
 
 const styles = StyleSheet.create({
   input: {
@@ -67,3 +58,5 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
 });
+
+export default CustomInput;

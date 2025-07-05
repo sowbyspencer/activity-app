@@ -16,8 +16,6 @@ export const fetchUserProfile = async (userId: number) => {
 
 export const updateUserProfile = async (userId: number, formData: FormData) => {
     try {
-        console.log("Sending request to update user profile:", { userId, formData });
-
         const options: RequestInit = {
             method: "PUT",
             body: formData,

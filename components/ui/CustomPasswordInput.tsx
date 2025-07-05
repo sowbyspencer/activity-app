@@ -1,12 +1,5 @@
-import React, { useState } from "react";
-import {
-  View,
-  TextInput,
-  StyleSheet,
-  TextInputProps,
-  TouchableOpacity,
-  Text,
-} from "react-native";
+import React, { useState, forwardRef } from "react";
+import { View, TextInput, StyleSheet, TextInputProps, TouchableOpacity, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useColorScheme } from "@/hooks/useColorScheme";
 
@@ -14,11 +7,7 @@ interface CustomPasswordInputProps extends TextInputProps {
   error?: string;
 }
 
-const CustomPasswordInput: React.FC<CustomPasswordInputProps> = ({
-  error,
-  style,
-  ...props
-}) => {
+const CustomPasswordInput = forwardRef<TextInput, CustomPasswordInputProps>(({ error, style, ...props }, ref) => {
   const [showPassword, setShowPassword] = useState(false);
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -26,14 +15,10 @@ const CustomPasswordInput: React.FC<CustomPasswordInputProps> = ({
   return (
     <View style={{ position: "relative", width: "100%" }}>
       <TextInput
+        ref={ref}
         {...props}
         secureTextEntry={!showPassword}
-        style={[
-          styles.input,
-          isDark ? styles.inputDark : styles.inputLight,
-          error ? styles.inputError : null,
-          style,
-        ]}
+        style={[styles.input, isDark ? styles.inputDark : styles.inputLight, error ? styles.inputError : null, style]}
         placeholderTextColor={isDark ? "#aaa" : "#888"}
       />
       <TouchableOpacity
@@ -42,16 +27,14 @@ const CustomPasswordInput: React.FC<CustomPasswordInputProps> = ({
         accessibilityLabel={showPassword ? "Hide password" : "Show password"}
         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
       >
-        <Ionicons
-          name={showPassword ? "eye-off" : "eye"}
-          size={22}
-          color={isDark ? "#aaa" : "#888"}
-        />
+        <Ionicons name={showPassword ? "eye-off" : "eye"} size={22} color={isDark ? "#aaa" : "#888"} />
       </TouchableOpacity>
       {!!error && <Text style={styles.errorText}>{error}</Text>}
     </View>
   );
-};
+});
+
+CustomPasswordInput.displayName = "CustomPasswordInput";
 
 const styles = StyleSheet.create({
   input: {

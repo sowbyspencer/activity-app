@@ -40,6 +40,7 @@ export default function ActivitySwiper() {
   // Animated values for swiping
   const translateX = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(0)).current;
+  const skipNextFocusRefresh = useRef(false);
 
   // Fetch data
   const fetchAndSetActivities = useCallback(async () => {
@@ -71,9 +72,15 @@ export default function ActivitySwiper() {
     }
   }, [userId]);
 
-  // Refresh activities every time the page is focused
+  // Refresh activities every time the page is focused, except when returning from activityInfo
   useFocusEffect(
     useCallback(() => {
+      if (skipNextFocusRefresh.current) {
+        skipNextFocusRefresh.current = false;
+        translateX.setValue(0);
+        translateY.setValue(0);
+        return;
+      }
       if (userId) {
         fetchAndSetActivities();
       }
@@ -115,6 +122,7 @@ export default function ActivitySwiper() {
 
       // **Tap Detection**
       if (Math.abs(gesture.dx) < TAP_THRESHOLD && Math.abs(gesture.dy) < TAP_THRESHOLD) {
+        skipNextFocusRefresh.current = true;
         navigation.navigate(
           "activityInfo" as never,
           {
@@ -264,7 +272,7 @@ export default function ActivitySwiper() {
         onPress={handleRefresh}
         style={{
           position: "absolute",
-          top: 18,
+          top: 60, // Move below the header (header is 60px, plus 18px spacing)
           right: 18,
           zIndex: 10,
           opacity: 0.5,

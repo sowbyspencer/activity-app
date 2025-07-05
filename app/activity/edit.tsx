@@ -1,23 +1,26 @@
-import React from "react";
+import React, { useState } from "react";
 import { API_URL } from "@/api/config";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import ActivityForm from "@/components/ActivityForm";
 import { useAuth } from "@/context/AuthContext";
-import { Alert, View } from "react-native";
+import { Alert, View, Text, ActivityIndicator } from "react-native";
 import CustomButton from "@/components/ui/CustomButton";
 
 export default function EditActivityScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const { userId } = useAuth();
-  const activity = JSON.parse(route.params.activity); // Parse activity data from route params
+  const [processing, setProcessing] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  // Type-safe access to route params
+  const activity = route.params && typeof route.params === "object" && "activity" in route.params ? JSON.parse(route.params.activity as string) : {};
 
   const handleEdit = async (form: {
     name: string;
     location: string;
     has_cost: boolean;
-    cost?: string | null; // Allow cost to be optional or null
-    url?: string | null; // Allow url to be optional or null
+    cost?: string | null;
+    url?: string | null;
     description: string;
     images: string[];
     available_sun: boolean;
@@ -29,6 +32,7 @@ export default function EditActivityScreen() {
     available_sat: boolean;
   }) => {
     try {
+      setProcessing(true);
       const formData = new FormData();
       // Only append fields that have changed
       if (form.name !== activity.name) formData.append("name", form.name);
@@ -45,7 +49,7 @@ export default function EditActivityScreen() {
       if (form.available_fri !== activity.available_fri) formData.append("available_fri", form.available_fri ? "true" : "false");
       if (form.available_sat !== activity.available_sat) formData.append("available_sat", form.available_sat ? "true" : "false");
       // Always send user_id for now
-      formData.append("user_id", userId ? String(userId) : ""); // Use real user id from AuthContext
+      formData.append("user_id", userId ? String(userId) : "");
 
       // Handle images: only send new images as files, keep existing URLs as-is
       if (form.images && Array.isArray(form.images)) {
@@ -56,7 +60,7 @@ export default function EditActivityScreen() {
               uri: img,
               name: "activity-image.jpg",
               type: "image/jpeg",
-            });
+            } as any);
           } else {
             // Existing image URL, send as string (backend should merge)
             formData.append("existingImages", img);
@@ -68,7 +72,7 @@ export default function EditActivityScreen() {
         method: "PUT",
         body: formData,
       });
-
+      setProcessing(false);
       if (response.ok) {
         alert("Activity updated successfully!");
         navigation.goBack();
@@ -78,6 +82,7 @@ export default function EditActivityScreen() {
         alert(`Failed to update activity: ${errorData.error}`);
       }
     } catch (error) {
+      setProcessing(false);
       console.error("[FRONTEND] Error updating activity:", error);
     }
   };
@@ -90,9 +95,11 @@ export default function EditActivityScreen() {
         style: "destructive",
         onPress: async () => {
           try {
+            setDeleting(true);
             const response = await fetch(`${API_URL}/activities/${activity.id}`, {
               method: "DELETE",
             });
+            setDeleting(false);
             if (response.ok) {
               alert("Activity deleted successfully!");
               navigation.goBack();
@@ -101,6 +108,7 @@ export default function EditActivityScreen() {
               alert(`Failed to delete activity: ${errorData.error}`);
             }
           } catch (error) {
+            setDeleting(false);
             alert("Error deleting activity. Please try again.");
           }
         },
@@ -121,6 +129,24 @@ export default function EditActivityScreen() {
 
   return (
     <View style={{ flex: 1 }}>
+      {(processing || deleting) && (
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 999,
+            backgroundColor: "rgba(255,255,255,0.7)",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <ActivityIndicator size="large" color="#333" />
+          <Text style={{ fontSize: 18, fontWeight: "bold", marginTop: 16 }}>{deleting ? "Deleting Activity..." : "Updating Activity..."}</Text>
+        </View>
+      )}
       <ActivityForm initialData={parsedActivity} onSubmit={handleEdit} />
       <View style={{ paddingHorizontal: 20, marginBottom: 24 }}>
         <CustomButton title="Delete Activity" onPress={handleDelete} color="#B00020" />

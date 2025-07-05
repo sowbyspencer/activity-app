@@ -1,12 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import { API_URL } from "@/api/config";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigation } from "@react-navigation/native";
 import ActivityForm from "@/components/ActivityForm";
+import { View, Text, ActivityIndicator } from "react-native";
 
 export default function CreateActivityScreen() {
   const navigation = useNavigation();
   const { userId } = useAuth();
+  const [processing, setProcessing] = useState(false);
 
   const handleCreate = async (form: {
     name: string;
@@ -25,15 +27,16 @@ export default function CreateActivityScreen() {
     available_sat: boolean;
   }) => {
     try {
+      setProcessing(true);
       const formData = new FormData();
       formData.append("name", form.name);
       formData.append("location", form.location);
       formData.append("has_cost", form.has_cost ? "true" : "false");
 
-      // Normalize cost: convert 'Free', 'none', or blank to null
+      // Normalize cost: convert 'Free', 'none', or blank to empty string
       let cost = form.cost;
-      if (/^(free|none)$/i.test(cost.trim()) || cost.trim() === "") cost = null;
-      formData.append("cost", cost === null ? "" : cost);
+      if (/^(free|none)$/i.test(cost.trim()) || cost.trim() === "") cost = "";
+      formData.append("cost", cost);
 
       formData.append("url", form.url);
       formData.append("description", form.description);
@@ -67,17 +70,48 @@ export default function CreateActivityScreen() {
         method: "POST",
         body: formData,
       });
-
+      setProcessing(false);
       if (response.ok) {
         alert("Activity created successfully!");
         navigation.goBack();
       } else {
         const errorData = await response.json();
-
         alert(`Failed to create activity: ${errorData.error}`);
       }
-    } catch (error) {}
+    } catch (error) {
+      setProcessing(false);
+    }
   };
 
-  return <ActivityForm onSubmit={handleCreate} />;
+  return (
+    <>
+      {processing && (
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 999,
+            backgroundColor: "rgba(255,255,255,0.7)",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <ActivityIndicator size="large" color="#333" />
+          <Text
+            style={{
+              fontSize: 18,
+              fontWeight: "bold",
+              marginTop: 16,
+            }}
+          >
+            Creating Activity...
+          </Text>
+        </View>
+      )}
+      <ActivityForm onSubmit={handleCreate} />
+    </>
+  );
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Button, View, Alert, Modal, Text, TextInput, StyleSheet } from "react-native"; // Add Modal, Text, TextInput, StyleSheet
+import { Button, View, Alert, Modal, Text, TextInput, StyleSheet, ActivityIndicator } from "react-native"; // Add Modal, Text, TextInput, StyleSheet
 import { fetchUserProfile, updateUserProfile } from "@/api/userService";
 import { useAuth } from "@/context/AuthContext";
 import * as ImagePicker from "expo-image-picker";
@@ -40,6 +40,7 @@ export default function ProfileScreen() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
   const [showDeletePassword, setShowDeletePassword] = useState(false);
+  const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
     const loadUserProfile = async () => {
@@ -80,6 +81,7 @@ export default function ProfileScreen() {
       }
       if (hasError) return;
       try {
+        setUpdating(true);
         const formData = new FormData();
         formData.append("firstName", form.firstName);
         formData.append("lastName", form.lastName);
@@ -106,7 +108,9 @@ export default function ProfileScreen() {
           setForm(updatedProfile);
           console.log("Profile updated successfully:", updatedProfile);
         }
+        setUpdating(false);
       } catch (error) {
+        setUpdating(false);
         console.error("Error updating profile:", error);
       }
     }
@@ -201,6 +205,24 @@ export default function ProfileScreen() {
 
   return (
     <>
+      {updating && (
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 999,
+            backgroundColor: "rgba(255,255,255,0.7)",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <ActivityIndicator size="large" color="#333" />
+          <Text style={{ fontSize: 18, fontWeight: "bold", marginTop: 16 }}>Updating profile...</Text>
+        </View>
+      )}
       <FormWrapper>
         {/* Profile Image */}
         <View style={{ alignItems: "center", marginBottom: 20 }}>

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { View, Text, Alert, Image, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, Alert, Image, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator } from "react-native";
 import CustomInput from "@/components/ui/CustomInput";
 import CustomButton from "@/components/ui/CustomButton";
 import CustomPasswordInput from "@/components/ui/CustomPasswordInput";
@@ -27,6 +27,7 @@ export default function SignupScreen() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [profileImage, setProfileImage] = useState("");
   const [profileImageError, setProfileImageError] = useState("");
+  const [processing, setProcessing] = useState(false);
 
   // Refs for input focus
   const emailRef = useRef(null);
@@ -96,6 +97,7 @@ export default function SignupScreen() {
       return;
     }
     try {
+      setProcessing(true);
       const response = await fetch(`${API_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -108,7 +110,7 @@ export default function SignupScreen() {
         }),
       });
       const text = await response.text();
-      console.log("Signup response:", text);
+      setProcessing(false);
       let data;
       try {
         data = JSON.parse(text);
@@ -127,6 +129,7 @@ export default function SignupScreen() {
         Alert.alert("Signup failed", data.error || "Unknown error");
       }
     } catch (error) {
+      setProcessing(false);
       console.error("Error during signup:", error);
     }
   };
@@ -140,6 +143,24 @@ export default function SignupScreen() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? 40 : 0}
     >
+      {processing && (
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 999,
+            backgroundColor: "rgba(255,255,255,0.7)",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <ActivityIndicator size="large" color="#333" />
+          <Text style={{ fontSize: 18, fontWeight: "bold", marginTop: 16 }}>Creating account...</Text>
+        </View>
+      )}
       <ScrollView
         contentContainerStyle={{
           flexGrow: 1,

@@ -1,14 +1,23 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, SafeAreaView, FlatList, TouchableOpacity, Alert } from "react-native";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { useRouter } from "expo-router";
 import { API_URL } from "@/api/config";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function SettingsScreen() {
   const colorScheme = useColorScheme();
   const router = useRouter();
 
-  const userId = 1; // Replace with dynamic user ID if available
+  const [userId, setUserId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const loadUserId = async () => {
+      const storedId = await AsyncStorage.getItem("userId");
+      if (storedId) setUserId(Number(storedId));
+    };
+    loadUserId();
+  }, []);
 
   const handleRefreshDeclined = async () => {
     Alert.alert("Refresh Declined Activities", "Do you want to refresh Declined activities?", [

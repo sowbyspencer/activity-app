@@ -4,12 +4,15 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import { useRouter } from "expo-router";
 import { API_URL } from "@/api/config";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import useDeviceLocation from "@/hooks/useDeviceLocation";
+import { resetDeclinedActivities, fetchActivities } from "@/api/activityService";
 
 export default function SettingsScreen() {
   const colorScheme = useColorScheme();
   const router = useRouter();
 
   const [userId, setUserId] = useState<number | null>(null);
+  const { coords } = useDeviceLocation();
 
   useEffect(() => {
     const loadUserId = async () => {
@@ -26,11 +29,8 @@ export default function SettingsScreen() {
         text: "Refresh",
         style: "destructive",
         onPress: async () => {
-          await fetch(`${API_URL}/activities/reset-swipes`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userId }),
-          });
+          await resetDeclinedActivities(userId);
+          // Fetch activities with device location
           Alert.alert("Success", "Declined activities have been refreshed.", [
             {
               text: "OK",

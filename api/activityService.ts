@@ -54,3 +54,17 @@ export const leaveActivity = async (
     return { error: true };
   }
 };
+
+export const resetDeclinedActivities = async (userId: number) => {
+  try {
+    const response = await fetch(`${API_URL}/activities/reset-swipes`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId }),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Error resetting declined activities:", error);
+    return { error: true };
+  }
+};

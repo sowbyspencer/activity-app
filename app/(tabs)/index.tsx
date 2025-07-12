@@ -68,20 +68,6 @@ export default function ActivitySwiper() {
     [userId]
   );
 
-  // On mount and userId change, fetch with current location
-  useEffect(() => {
-    if (!userId) return;
-    if (coords) {
-      fetchAndSetActivities(coords);
-    } else {
-      // fetchAndSetActivities();
-      console.warn("[ActivitySwiper] No coords available to fetch activities");
-    }
-    return () => {
-      console.log("[ActivitySwiper] useEffect CLEANUP, userId:", userId);
-    };
-  }, [userId, coords]);
-
   // When location changes, fetch if different from lastFetchedLocation
   useEffect(() => {
     if (!userId || !coords) return;
@@ -220,13 +206,8 @@ export default function ActivitySwiper() {
         onPress: async () => {
           setLoading(true);
           await resetDeclinedActivities(Number(userId));
-          // Fetch new activities with latest location
-          const newActivities = await fetchActivities(Number(userId), coords ? { coords: coords } : undefined);
-          setActivities((prev) => {
-            const existingIds = new Set(prev.map((a) => a.id));
-            const uniqueNew = newActivities.filter((a: Activity) => !existingIds.has(a.id));
-            return [...prev, ...uniqueNew];
-          });
+          // Use fetchAndSetActivities to fetch new activities with latest location
+          await fetchAndSetActivities(coords ?? undefined);
           setLoading(false);
         },
       },
@@ -271,18 +252,47 @@ export default function ActivitySwiper() {
             setLoading(true);
             setCurrentActivity(0);
             setCurrentImage(0);
-            await fetch(`${API_URL}/activities/reset-swipes`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ userId: Number(userId) }),
-            });
-            // Refetch activities with latest location
-            const data = await fetchActivities(Number(userId), coords ? { coords } : undefined);
-            setActivities(data);
+            await resetDeclinedActivities(Number(userId));
+            // Use fetchAndSetActivities to refetch activities with latest location
+            await fetchAndSetActivities(coords ?? undefined);
             setLoading(false);
           }}
         >
           <Text style={{ color: "white", fontWeight: "bold" }}>Refresh Declined Activities</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  if (!coords || errorMsg) {
+    // Location permission denied or not available
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: colorScheme === "dark" ? "black" : "white",
+          padding: 24,
+        }}
+      >
+        <Text style={{ fontSize: 20, color: colorScheme === "dark" ? "white" : "black", marginBottom: 20, textAlign: "center" }}>
+          Activities can't be loaded without location access.
+        </Text>
+        <Text style={{ color: "red", marginBottom: 20, textAlign: "center" }}>
+          {errorMsg ? errorMsg : "Please enable location permissions to continue."}
+        </Text>
+        <TouchableOpacity
+          style={{ backgroundColor: "#007AFF", paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 }}
+          onPress={async () => {
+            // Prompt user to reset location permissions
+            const { status } = await Location.requestForegroundPermissionsAsync();
+            if (status === "granted") {
+              fetchAndSetActivities();
+            }
+          }}
+        >
+          <Text style={{ color: "white", fontWeight: "bold" }}>Reset Location Permission</Text>
         </TouchableOpacity>
       </View>
     );

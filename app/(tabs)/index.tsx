@@ -76,9 +76,9 @@ export default function ActivitySwiper() {
   useEffect(() => {
     if (!userId || !coords) return;
     const { latitude, longitude } = coords;
-    // if (!lastFetchedLocation || lastFetchedLocation.latitude !== latitude || lastFetchedLocation.longitude !== longitude) {
-    fetchAndSetActivities({ latitude, longitude });
-    // }
+    if (!lastFetchedLocation || lastFetchedLocation.latitude !== latitude || lastFetchedLocation.longitude !== longitude) {
+      fetchAndSetActivities({ latitude, longitude });
+    }
   }, [coords, userId]);
 
   // Reset state when user logs out

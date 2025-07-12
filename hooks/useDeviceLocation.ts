@@ -2,6 +2,7 @@ import * as Location from 'expo-location';
 import { useEffect, useState } from 'react';
 import type { LocationObject } from 'expo-location';
 
+// Custom hook to get device location
 export default function useDeviceLocation() {
     const [location, setLocation] = useState<LocationObject | null>(null);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);

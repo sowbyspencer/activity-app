@@ -1,11 +1,17 @@
 import { API_URL } from "./config";
 
-export const fetchActivities = async (userId: string | number) => {
+export const fetchActivities = async (userId: string | number,
+  location?: { coords: { latitude: number; longitude: number } }) => {
   if (!userId) {
     throw new Error("fetchActivities requires a userId");
   }
+  let url = `${API_URL}/activities?user_id=${userId}`;
+  if (location && location.coords) {
+    // url += `&lat=${location.coords.latitude}&lon=${location.coords.longitude}`;
+    console.log("Fetching activities with location:", location);
+  }
   try {
-    const response = await fetch(`${API_URL}/activities?user_id=${userId}`);
+    const response = await fetch(url);
     return await response.json();
   } catch (error) {
     console.error("Error fetching activities:", error);

@@ -206,15 +206,6 @@ export default function ActivitySwiper() {
     ]);
   };
 
-  useEffect(() => {
-    if (location) {
-      console.log("[ActivitySwiper] User location:", location);
-    }
-    if (errorMsg) {
-      console.log("[ActivitySwiper] Location error:", errorMsg);
-    }
-  }, [location, errorMsg]);
-
   if (loading) {
     return (
       <View

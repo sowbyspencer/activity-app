@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect, useCallback } from "react";
 import { View, Text, Image, Animated, PanResponder, Dimensions, ActivityIndicator, TouchableOpacity, Alert } from "react-native";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import { fetchActivities, swipeActivity } from "@/api/activityService";
+import { fetchActivities, swipeActivity, resetDeclinedActivities } from "@/api/activityService";
 import { useAuth } from "@/context/AuthContext";
 import { API_URL } from "@/api/config";
 import { Ionicons } from "@expo/vector-icons";
@@ -46,14 +46,23 @@ export default function ActivitySwiper() {
   const skipNextFocusRefresh = useRef(false);
 
   // Fetch data
+  // Fetch activities from the server and add to the bottom of the stack
+  // loc: optional latitude/longitude to use for the fetch
   const fetchAndSetActivities = useCallback(
     async (loc?: { latitude: number; longitude: number } | null) => {
+      // If no user is logged in, do nothing
       if (!userId) return;
-      setActivities([]);
       setLoading(true);
+      // Fetch activities from the API, passing location if available
       const data = await fetchActivities(userId, loc ? { coords: loc } : undefined);
-      setActivities(data);
+      // Add new activities to the bottom of the stack, avoiding duplicates
+      setActivities((prev) => {
+        const existingIds = new Set(prev.map((a) => a.id));
+        const uniqueNew = data.filter((a: Activity) => !existingIds.has(a.id));
+        return [...prev, ...uniqueNew];
+      });
       setLoading(false);
+      // If location was used, store it as the last fetched location
       if (loc) setLastFetchedLocation(loc);
     },
     [userId]
@@ -65,12 +74,13 @@ export default function ActivitySwiper() {
     if (coords) {
       fetchAndSetActivities(coords);
     } else {
-      fetchAndSetActivities();
+      // fetchAndSetActivities();
+      console.warn("[ActivitySwiper] No coords available to fetch activities");
     }
     return () => {
       console.log("[ActivitySwiper] useEffect CLEANUP, userId:", userId);
     };
-  }, [userId]);
+  }, [userId, coords]);
 
   // When location changes, fetch if different from lastFetchedLocation
   useEffect(() => {
@@ -105,7 +115,8 @@ export default function ActivitySwiper() {
         if (coords) {
           fetchAndSetActivities(coords);
         } else {
-          fetchAndSetActivities();
+          // fetchAndSetActivities();
+          console.warn("[ActivitySwiper] No coords available to fetch activities");
         }
       }
       translateX.setValue(0);
@@ -208,13 +219,9 @@ export default function ActivitySwiper() {
         style: "destructive",
         onPress: async () => {
           setLoading(true);
-          await fetch(`${API_URL}/activities/reset-swipes`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userId: Number(userId) }),
-          });
+          await resetDeclinedActivities(Number(userId));
           // Fetch new activities with latest location
-          const newActivities = await fetchActivities(Number(userId), coords ? { coords } : undefined);
+          const newActivities = await fetchActivities(Number(userId), coords ? { coords: coords } : undefined);
           setActivities((prev) => {
             const existingIds = new Set(prev.map((a) => a.id));
             const uniqueNew = newActivities.filter((a: Activity) => !existingIds.has(a.id));

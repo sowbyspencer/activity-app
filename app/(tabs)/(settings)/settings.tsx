@@ -29,8 +29,8 @@ export default function SettingsScreen() {
         text: "Refresh",
         style: "destructive",
         onPress: async () => {
+          if (userId == null) return;
           await resetDeclinedActivities(userId);
-          // Fetch activities with device location
           Alert.alert("Success", "Declined activities have been refreshed.", [
             {
               text: "OK",

@@ -7,8 +7,9 @@ export const fetchActivities = async (userId: string | number,
   }
   let url = `${API_URL}/activities?user_id=${userId}`;
   if (location && location.coords) {
-    // url += `&lat=${location.coords.latitude}&lon=${location.coords.longitude}`;
-    console.log("Fetching activities with location:", location);
+    const { latitude, longitude } = location.coords;
+    // url += `&lat=${latitude}&lon=${longitude}`;
+    console.log("[API]Fetching activities with lat/lon:", { latitude, longitude });
   }
   try {
     const response = await fetch(url);

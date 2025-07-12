@@ -37,7 +37,8 @@ export default function ActivitySwiper() {
   const [currentActivity, setCurrentActivity] = useState(0);
   const [currentImage, setCurrentImage] = useState(0);
   const [loading, setLoading] = useState(true);
-  const { location, errorMsg } = useDeviceLocation();
+  const { coords, errorMsg } = useDeviceLocation();
+  const [lastFetchedLocation, setLastFetchedLocation] = useState<{ latitude: number; longitude: number } | null>(null);
 
   // Animated values for swiping
   const translateX = useRef(new Animated.Value(0)).current;
@@ -45,23 +46,40 @@ export default function ActivitySwiper() {
   const skipNextFocusRefresh = useRef(false);
 
   // Fetch data
-  const fetchAndSetActivities = useCallback(async () => {
-    if (!userId) return;
-    setActivities([]);
-    setLoading(true);
-    const data = await fetchActivities(userId);
-    setActivities(data);
-    setLoading(false);
-  }, [userId]);
+  const fetchAndSetActivities = useCallback(
+    async (loc?: { latitude: number; longitude: number } | null) => {
+      if (!userId) return;
+      setActivities([]);
+      setLoading(true);
+      const data = await fetchActivities(userId, loc ? { coords: loc } : undefined);
+      setActivities(data);
+      setLoading(false);
+      if (loc) setLastFetchedLocation(loc);
+    },
+    [userId]
+  );
 
+  // On mount and userId change, fetch with current location
   useEffect(() => {
-    console.log("[ActivitySwiper] useEffect RUN, userId:", userId);
     if (!userId) return;
-    fetchAndSetActivities();
+    if (coords) {
+      fetchAndSetActivities(coords);
+    } else {
+      fetchAndSetActivities();
+    }
     return () => {
       console.log("[ActivitySwiper] useEffect CLEANUP, userId:", userId);
     };
-  }, [userId, fetchAndSetActivities]);
+  }, [userId]);
+
+  // When location changes, fetch if different from lastFetchedLocation
+  useEffect(() => {
+    if (!userId || !coords) return;
+    const { latitude, longitude } = coords;
+    // if (!lastFetchedLocation || lastFetchedLocation.latitude !== latitude || lastFetchedLocation.longitude !== longitude) {
+    fetchAndSetActivities({ latitude, longitude });
+    // }
+  }, [coords, userId]);
 
   // Reset state when user logs out
   useEffect(() => {
@@ -84,11 +102,15 @@ export default function ActivitySwiper() {
         return;
       }
       if (userId) {
-        fetchAndSetActivities();
+        if (coords) {
+          fetchAndSetActivities(coords);
+        } else {
+          fetchAndSetActivities();
+        }
       }
       translateX.setValue(0);
       translateY.setValue(0);
-    }, [userId, fetchAndSetActivities, translateX, translateY])
+    }, [userId, coords])
   );
 
   const TAP_THRESHOLD = 10; // Movement threshold to detect taps
@@ -186,16 +208,14 @@ export default function ActivitySwiper() {
         style: "destructive",
         onPress: async () => {
           setLoading(true);
-          // Call backend to reset declined activities for this user
           await fetch(`${API_URL}/activities/reset-swipes`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ userId: Number(userId) }),
           });
-          // Fetch new activities
-          const newActivities = await fetchActivities(Number(userId));
+          // Fetch new activities with latest location
+          const newActivities = await fetchActivities(Number(userId), coords ? { coords } : undefined);
           setActivities((prev) => {
-            // Filter out activities already in the stack by id
             const existingIds = new Set(prev.map((a) => a.id));
             const uniqueNew = newActivities.filter((a: Activity) => !existingIds.has(a.id));
             return [...prev, ...uniqueNew];
@@ -244,14 +264,13 @@ export default function ActivitySwiper() {
             setLoading(true);
             setCurrentActivity(0);
             setCurrentImage(0);
-            // Call backend to reset declined activities for this user
             await fetch(`${API_URL}/activities/reset-swipes`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ userId: Number(userId) }),
             });
-            // Refetch activities
-            const data = await fetchActivities(Number(userId));
+            // Refetch activities with latest location
+            const data = await fetchActivities(Number(userId), coords ? { coords } : undefined);
             setActivities(data);
             setLoading(false);
           }}

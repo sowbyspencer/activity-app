@@ -1,10 +1,9 @@
 import * as Location from 'expo-location';
 import { useEffect, useState } from 'react';
-import type { LocationObject } from 'expo-location';
 
-// Custom hook to get device location
+// Custom hook to get device latitude and longitude only
 export default function useDeviceLocation() {
-    const [location, setLocation] = useState<LocationObject | null>(null);
+    const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     useEffect(() => {
@@ -17,10 +16,12 @@ export default function useDeviceLocation() {
                 return;
             }
             let loc = await Location.getCurrentPositionAsync({});
-            setLocation(loc);
-            console.log('Device location:', loc);
+            if (loc && loc.coords) {
+                setCoords({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
+                console.log('[HOOK] Device lat/lon:', { latitude: loc.coords.latitude, longitude: loc.coords.longitude });
+            }
         })();
     }, []);
 
-    return { location, errorMsg };
+    return { coords, errorMsg };
 }

@@ -6,6 +6,7 @@ import { fetchActivities, swipeActivity } from "@/api/activityService";
 import { useAuth } from "@/context/AuthContext";
 import { API_URL } from "@/api/config";
 import { Ionicons } from "@expo/vector-icons";
+import useDeviceLocation from "@/hooks/useDeviceLocation";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -36,6 +37,7 @@ export default function ActivitySwiper() {
   const [currentActivity, setCurrentActivity] = useState(0);
   const [currentImage, setCurrentImage] = useState(0);
   const [loading, setLoading] = useState(true);
+  const { location, errorMsg } = useDeviceLocation();
 
   // Animated values for swiping
   const translateX = useRef(new Animated.Value(0)).current;
@@ -203,6 +205,15 @@ export default function ActivitySwiper() {
       },
     ]);
   };
+
+  useEffect(() => {
+    if (location) {
+      console.log("[ActivitySwiper] User location:", location);
+    }
+    if (errorMsg) {
+      console.log("[ActivitySwiper] Location error:", errorMsg);
+    }
+  }, [location, errorMsg]);
 
   if (loading) {
     return (

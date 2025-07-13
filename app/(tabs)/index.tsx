@@ -235,6 +235,43 @@ export default function ActivitySwiper() {
     ]);
   };
 
+  // Show view while waiting for location data
+  if (!coords && !errorMsg) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: colorScheme === "dark" ? "black" : "white",
+        }}
+      >
+        <ActivityIndicator size="large" color="blue" />
+        <Text style={{ color: colorScheme === "dark" ? "white" : "black" }}>Waiting for location data...</Text>
+      </View>
+    );
+  }
+
+  // Show view if location permissions are denied
+  if (errorMsg) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: colorScheme === "dark" ? "black" : "white",
+        }}
+      >
+        <Ionicons name="location" size={48} color="red" style={{ marginBottom: 16 }} />
+        <Text style={{ color: colorScheme === "dark" ? "white" : "black", fontSize: 18, textAlign: "center" }}>{errorMsg}</Text>
+        <Text style={{ color: colorScheme === "dark" ? "white" : "black", marginTop: 8, textAlign: "center" }}>
+          Please enable location permissions in your device settings.
+        </Text>
+      </View>
+    );
+  }
+
   if (loading) {
     return (
       <View

@@ -36,6 +36,26 @@ function mergeUniqueActivities(prev: Activity[], newData: Activity[]): Activity[
   return [...prev, ...uniqueNew];
 }
 
+// Helper to wrap async actions with loading state
+async function withLoading(setLoading: (loading: boolean) => void, asyncAction: () => Promise<void>) {
+  setLoading(true);
+  await asyncAction();
+  setLoading(false);
+}
+
+// Helper to reset declined activities and fetch new activities
+async function resetAndFetchActivities(
+  userId: number,
+  coords: { latitude: number; longitude: number } | null,
+  fetchAndSetActivities: (loc?: { latitude: number; longitude: number } | null) => Promise<void>,
+  setLoading: (loading: boolean) => void
+) {
+  await withLoading(setLoading, async () => {
+    await resetDeclinedActivities(userId);
+    await fetchAndSetActivities(coords ?? undefined);
+  });
+}
+
 export default function ActivitySwiper() {
   const colorScheme = useColorScheme();
   const navigation = useNavigation();
@@ -59,14 +79,14 @@ export default function ActivitySwiper() {
     async (loc?: { latitude: number; longitude: number } | null) => {
       // If no user is logged in, do nothing
       if (!userId) return;
-      setLoading(true);
-      // Fetch activities from the API, passing location if available
-      const data = await fetchActivities(userId, loc ? { coords: loc } : undefined);
-      // Add new activities to the bottom of the stack, avoiding duplicates
-      setActivities((prev) => mergeUniqueActivities(prev, data));
-      setLoading(false);
-      // If location was used, store it as the last fetched location
-      if (loc) setLastFetchedLocation(loc);
+      await withLoading(setLoading, async () => {
+        // Fetch activities from the API, passing location if available
+        const data = await fetchActivities(userId, loc ? { coords: loc } : undefined);
+        // Add new activities to the bottom of the stack, avoiding duplicates
+        setActivities((prev) => mergeUniqueActivities(prev, data));
+        // If location was used, store it as the last fetched location
+        if (loc) setLastFetchedLocation(loc);
+      });
     },
     [userId]
   );
@@ -207,11 +227,9 @@ export default function ActivitySwiper() {
         text: "Refresh",
         style: "destructive",
         onPress: async () => {
-          setLoading(true);
-          await resetDeclinedActivities(Number(userId));
-          // Use fetchAndSetActivities to fetch new activities with latest location
-          await fetchAndSetActivities(coords ?? undefined);
-          setLoading(false);
+          if (userId) {
+            await resetAndFetchActivities(Number(userId), coords, fetchAndSetActivities, setLoading);
+          }
         },
       },
     ]);
@@ -252,13 +270,11 @@ export default function ActivitySwiper() {
             borderRadius: 8,
           }}
           onPress={async () => {
-            setLoading(true);
             setCurrentActivity(0);
             setCurrentImage(0);
-            await resetDeclinedActivities(Number(userId));
-            // Use fetchAndSetActivities to refetch activities with latest location
-            await fetchAndSetActivities(coords ?? undefined);
-            setLoading(false);
+            if (userId) {
+              await resetAndFetchActivities(Number(userId), coords, fetchAndSetActivities, setLoading);
+            }
           }}
         >
           <Text style={{ color: "white", fontWeight: "bold" }}>Refresh Declined Activities</Text>

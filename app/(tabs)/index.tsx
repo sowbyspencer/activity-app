@@ -267,39 +267,39 @@ export default function ActivitySwiper() {
     );
   }
 
-  if (!coords || errorMsg) {
-    // Location permission denied or not available
-    return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: colorScheme === "dark" ? "black" : "white",
-          padding: 24,
-        }}
-      >
-        <Text style={{ fontSize: 20, color: colorScheme === "dark" ? "white" : "black", marginBottom: 20, textAlign: "center" }}>
-          Activities can't be loaded without location access.
-        </Text>
-        <Text style={{ color: "red", marginBottom: 20, textAlign: "center" }}>
-          {errorMsg ? errorMsg : "Please enable location permissions to continue."}
-        </Text>
-        <TouchableOpacity
-          style={{ backgroundColor: "#007AFF", paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 }}
-          onPress={async () => {
-            // Prompt user to reset location permissions
-            const { status } = await Location.requestForegroundPermissionsAsync();
-            if (status === "granted") {
-              fetchAndSetActivities();
-            }
-          }}
-        >
-          <Text style={{ color: "white", fontWeight: "bold" }}>Reset Location Permission</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
+  // if (!coords || errorMsg) {
+  //   // Location permission denied or not available
+  //   return (
+  //     <View
+  //       style={{
+  //         flex: 1,
+  //         justifyContent: "center",
+  //         alignItems: "center",
+  //         backgroundColor: colorScheme === "dark" ? "black" : "white",
+  //         padding: 24,
+  //       }}
+  //     >
+  //       <Text style={{ fontSize: 20, color: colorScheme === "dark" ? "white" : "black", marginBottom: 20, textAlign: "center" }}>
+  //         Activities can't be loaded without location access.
+  //       </Text>
+  //       <Text style={{ color: "red", marginBottom: 20, textAlign: "center" }}>
+  //         {errorMsg ? errorMsg : "Please enable location permissions to continue."}
+  //       </Text>
+  //       <TouchableOpacity
+  //         style={{ backgroundColor: "#007AFF", paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 }}
+  //         onPress={async () => {
+  //           // Prompt user to reset location permissions
+  //           const { status } = await Location.requestForegroundPermissionsAsync();
+  //           if (status === "granted") {
+  //             fetchAndSetActivities();
+  //           }
+  //         }}
+  //       >
+  //         <Text style={{ color: "white", fontWeight: "bold" }}>Reset Location Permission</Text>
+  //       </TouchableOpacity>
+  //     </View>
+  //   );
+  // }
 
   return (
     <View

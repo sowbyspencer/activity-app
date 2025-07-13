@@ -29,6 +29,13 @@ interface Activity {
   images: string[];
 }
 
+// Helper to merge new activities, avoiding duplicates
+function mergeUniqueActivities(prev: Activity[], newData: Activity[]): Activity[] {
+  const existingIds = new Set(prev.map((a) => a.id));
+  const uniqueNew = newData.filter((a) => !existingIds.has(a.id));
+  return [...prev, ...uniqueNew];
+}
+
 export default function ActivitySwiper() {
   const colorScheme = useColorScheme();
   const navigation = useNavigation();
@@ -56,11 +63,7 @@ export default function ActivitySwiper() {
       // Fetch activities from the API, passing location if available
       const data = await fetchActivities(userId, loc ? { coords: loc } : undefined);
       // Add new activities to the bottom of the stack, avoiding duplicates
-      setActivities((prev) => {
-        const existingIds = new Set(prev.map((a) => a.id));
-        const uniqueNew = data.filter((a: Activity) => !existingIds.has(a.id));
-        return [...prev, ...uniqueNew];
-      });
+      setActivities((prev) => mergeUniqueActivities(prev, data));
       setLoading(false);
       // If location was used, store it as the last fetched location
       if (loc) setLastFetchedLocation(loc);

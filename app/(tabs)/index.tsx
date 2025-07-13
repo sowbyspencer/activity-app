@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { API_URL } from "@/api/config";
 import { Ionicons } from "@expo/vector-icons";
 import useDeviceLocation from "@/hooks/useDeviceLocation";
+import * as Linking from "expo-linking";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -64,7 +65,8 @@ export default function ActivitySwiper() {
   const [currentActivity, setCurrentActivity] = useState(0);
   const [currentImage, setCurrentImage] = useState(0);
   const [loading, setLoading] = useState(true);
-  const { coords, errorMsg } = useDeviceLocation();
+  const [locationRefreshKey, setLocationRefreshKey] = useState(0);
+  const { coords, errorMsg } = useDeviceLocation(locationRefreshKey);
   const [lastFetchedLocation, setLastFetchedLocation] = useState<{ latitude: number; longitude: number } | null>(null);
 
   // Animated values for swiping
@@ -237,6 +239,22 @@ export default function ActivitySwiper() {
 
   // Show view while waiting for location data
   if (!coords && !errorMsg) {
+    const handleRefreshLocation = async () => {
+      // Re-request location permissions and refresh location
+      try {
+        const { status } = await import("expo-location").then((Location) => Location.requestForegroundPermissionsAsync());
+        if (status === "granted") {
+          const loc = await import("expo-location").then((Location) => Location.getCurrentPositionAsync({}));
+          if (loc && loc.coords) {
+            // Manually update location state
+            setActivities([]); // Optionally clear activities to force reload
+            fetchAndSetActivities({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
+          }
+        }
+      } catch (e) {
+        // Optionally handle error
+      }
+    };
     return (
       <View
         style={{
@@ -248,12 +266,36 @@ export default function ActivitySwiper() {
       >
         <ActivityIndicator size="large" color="blue" />
         <Text style={{ color: colorScheme === "dark" ? "white" : "black" }}>Waiting for location data...</Text>
+        <TouchableOpacity
+          style={{ marginTop: 24, backgroundColor: "#007AFF", paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 }}
+          onPress={handleRefreshLocation}
+        >
+          <Text style={{ color: "white", fontWeight: "bold" }}>Refresh Location</Text>
+        </TouchableOpacity>
       </View>
     );
   }
 
   // Show view if location permissions are denied
   if (errorMsg) {
+    const handleOpenSettings = async () => {
+      try {
+        await Linking.openSettings();
+        setTimeout(async () => {
+          const { status } = await import("expo-location").then((Location) => Location.requestForegroundPermissionsAsync());
+          if (status === "granted") {
+            const loc = await import("expo-location").then((Location) => Location.getCurrentPositionAsync({}));
+            if (loc && loc.coords) {
+              setActivities([]); // Optionally clear activities to force reload
+              fetchAndSetActivities({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
+              setLocationRefreshKey((k) => k + 1); // Force hook to refresh
+            }
+          }
+        }, 1500);
+      } catch (e) {
+        // Optionally handle error
+      }
+    };
     return (
       <View
         style={{
@@ -268,6 +310,12 @@ export default function ActivitySwiper() {
         <Text style={{ color: colorScheme === "dark" ? "white" : "black", marginTop: 8, textAlign: "center" }}>
           Please enable location permissions in your device settings.
         </Text>
+        <TouchableOpacity
+          style={{ marginTop: 24, backgroundColor: "#007AFF", paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 }}
+          onPress={handleOpenSettings}
+        >
+          <Text style={{ color: "white", fontWeight: "bold" }}>Open App Permission Settings</Text>
+        </TouchableOpacity>
       </View>
     );
   }

@@ -1,26 +1,18 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, SafeAreaView, FlatList, TouchableOpacity, Alert } from "react-native";
+import React, { useEffect } from "react";
+import { View, Text, SafeAreaView, FlatList, TouchableOpacity, Alert, TextInput } from "react-native";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { useRouter } from "expo-router";
-import { API_URL } from "@/api/config";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import useDeviceLocation from "@/hooks/useDeviceLocation";
-import { resetDeclinedActivities, fetchActivities } from "@/api/activityService";
+import { useRadius } from "@/context/RadiusContext";
+import { resetDeclinedActivities } from "@/api/activityService";
 
 export default function SettingsScreen() {
   const colorScheme = useColorScheme();
   const router = useRouter();
-
-  const [userId, setUserId] = useState<number | null>(null);
-  const { coords } = useDeviceLocation();
+  const { radius, setRadius } = useRadius();
 
   useEffect(() => {
-    const loadUserId = async () => {
-      const storedId = await AsyncStorage.getItem("userId");
-      if (storedId) setUserId(Number(storedId));
-    };
-    loadUserId();
-  }, []);
+    console.log("[Settings] Current radius:", radius);
+  }, [radius]);
 
   const handleRefreshDeclined = async () => {
     Alert.alert("Refresh Declined Activities", "Do you want to refresh Declined activities?", [
@@ -29,8 +21,7 @@ export default function SettingsScreen() {
         text: "Refresh",
         style: "destructive",
         onPress: async () => {
-          if (userId == null) return;
-          await resetDeclinedActivities(userId);
+          await resetDeclinedActivities();
           Alert.alert("Success", "Declined activities have been refreshed.", [
             {
               text: "OK",
@@ -42,14 +33,48 @@ export default function SettingsScreen() {
     ]);
   };
 
+  const handleRadiusChange = (value: string) => {
+    // Only allow positive whole numbers between 1 and 3500
+    const num = Number(value);
+    if (!isNaN(num) && num > 0 && num <= 3500) {
+      setRadius(num);
+    }
+  };
+
   const options = [
     {
       id: "1",
       title: "My Profile",
-      navigateTo: { pathname: "profile", params: { userId } },
+      navigateTo: { pathname: "profile" },
     },
     { id: "2", title: "My Activities", navigateTo: "/activity/myActivities" },
     { id: "3", title: "Refresh Declined Activities", onPress: handleRefreshDeclined },
+    {
+      id: "4",
+      title: "Activity Search Radius (km)",
+      render: () => (
+        <View style={{ paddingVertical: 10 }}>
+          <Text style={{ fontSize: 16, marginBottom: 8, color: colorScheme === "dark" ? "white" : "black" }}>Activity Search Radius (km):</Text>
+          <TextInput
+            style={{
+              borderWidth: 1,
+              borderColor: colorScheme === "dark" ? "#555" : "#ccc",
+              borderRadius: 8,
+              padding: 10,
+              fontSize: 16,
+              color: colorScheme === "dark" ? "white" : "black",
+              backgroundColor: colorScheme === "dark" ? "#222" : "#f9f9f9",
+              width: 120,
+            }}
+            keyboardType="number-pad"
+            value={radius.toString()}
+            onChangeText={handleRadiusChange}
+            maxLength={4}
+          />
+          <Text style={{ fontSize: 14, marginTop: 4, color: colorScheme === "dark" ? "#aaa" : "#555" }}>Enter a value between 1 and 3,500</Text>
+        </View>
+      ),
+    },
   ];
 
   return (
@@ -79,31 +104,35 @@ export default function SettingsScreen() {
         </Text>
       </View>
 
-      {/* Options List */}
+      {/* Options List with integrated radius selector */}
       <FlatList
         data={options}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={{
-              height: 50,
-              justifyContent: "center",
-              paddingHorizontal: 15,
-              borderBottomWidth: 1,
-              borderBottomColor: colorScheme === "dark" ? "#555" : "#ddd",
-            }}
-            onPress={() => (item.onPress ? item.onPress() : router.push(item.navigateTo))}
-          >
-            <Text
+        renderItem={({ item }) =>
+          item.render ? (
+            item.render()
+          ) : (
+            <TouchableOpacity
               style={{
-                fontSize: 16,
-                color: colorScheme === "dark" ? "white" : "black",
+                height: 50,
+                justifyContent: "center",
+                paddingHorizontal: 15,
+                borderBottomWidth: 1,
+                borderBottomColor: colorScheme === "dark" ? "#555" : "#ddd",
               }}
+              onPress={() => (item.onPress ? item.onPress() : router.push(item.navigateTo))}
             >
-              {item.title}
-            </Text>
-          </TouchableOpacity>
-        )}
+              <Text
+                style={{
+                  fontSize: 16,
+                  color: colorScheme === "dark" ? "white" : "black",
+                }}
+              >
+                {item.title}
+              </Text>
+            </TouchableOpacity>
+          )
+        }
       />
     </SafeAreaView>
   );

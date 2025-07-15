@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
 import useDeviceLocation from "@/hooks/useDeviceLocation";
 import * as Linking from "expo-linking";
+import { useRadius } from "@/context/RadiusContext";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -60,12 +61,11 @@ async function resetAndFetchActivities(
   });
 }
 
-const DEFAULT_RADIUS_KM = 50;
-
 export default function ActivitySwiper() {
   const colorScheme = useColorScheme();
   const navigation = useNavigation();
   const { userId } = useAuth();
+  const { radius, setRadius } = useRadius();
   const [activities, setActivities] = useState<Activity[]>([]);
   const [currentActivity, setCurrentActivity] = useState(0);
   const [currentImage, setCurrentImage] = useState(0);
@@ -83,15 +83,17 @@ export default function ActivitySwiper() {
   // Fetch activities from the server and add to the bottom of the stack
   // loc: optional latitude/longitude to use for the fetch
   const fetchAndSetActivities = useCallback(
-    async (loc?: { latitude: number; longitude: number } | null, radius: number = DEFAULT_RADIUS_KM) => {
+    async (loc?: { latitude: number; longitude: number } | null, r?: number) => {
       if (!userId || !loc) return;
+      const effectiveRadius = r ?? radius;
+      console.log("[ActivitySwiper] Fetching activities with radius:", effectiveRadius);
       await withLoading(setLoading, async () => {
-        const data = await fetchActivities(userId, { coords: loc }, radius);
+        const data = await fetchActivities(userId, { coords: loc }, effectiveRadius);
         setActivities((prev) => mergeUniqueActivities(prev, data));
         setLastFetchedLocation(loc);
       });
     },
-    [userId]
+    [userId, radius]
   );
 
   // When location changes, fetch if different from lastFetchedLocation
@@ -99,9 +101,9 @@ export default function ActivitySwiper() {
     if (!userId || !coords) return;
     const { latitude, longitude } = coords;
     if (!lastFetchedLocation || lastFetchedLocation.latitude !== latitude || lastFetchedLocation.longitude !== longitude) {
-      fetchAndSetActivities({ latitude, longitude }, DEFAULT_RADIUS_KM);
+      fetchAndSetActivities({ latitude, longitude }, radius);
     }
-  }, [coords, userId]);
+  }, [coords, userId, radius]);
 
   // Reset state when user logs out
   useEffect(() => {
@@ -125,15 +127,15 @@ export default function ActivitySwiper() {
       }
       if (userId) {
         if (coords) {
-          fetchAndSetActivities(coords, DEFAULT_RADIUS_KM);
+          fetchAndSetActivities(coords, radius);
         } else {
-          // fetchAndSetActivities(undefined, DEFAULT_RADIUS_KM);
+          // fetchAndSetActivities(undefined, radius);
           console.warn("[ActivitySwiper] No coords available to fetch activities");
         }
       }
       translateX.setValue(0);
       translateY.setValue(0);
-    }, [userId, coords])
+    }, [userId, coords, radius])
   );
 
   const TAP_THRESHOLD = 10; // Movement threshold to detect taps
@@ -144,7 +146,7 @@ export default function ActivitySwiper() {
       const newActivities = prev.filter((_, idx) => idx !== currentActivity);
       if (newActivities.length === 0 && userId) {
         // Refresh activities if stack is empty
-        fetchAndSetActivities(undefined, DEFAULT_RADIUS_KM);
+        fetchAndSetActivities(undefined, radius);
       }
       return newActivities;
     });

@@ -1,15 +1,20 @@
 import { API_URL } from "./config";
 
 export const fetchActivities = async (userId: string | number,
-  location?: { coords: { latitude: number; longitude: number } }) => {
+  location?: { coords: { latitude: number; longitude: number } },
+  radius?: number) => {
   if (!userId) {
     throw new Error("fetchActivities requires a userId");
   }
   let url = `${API_URL}/activities?user_id=${userId}`;
   if (location && location.coords) {
     const { latitude, longitude } = location.coords;
-    // url += `&lat=${latitude}&lon=${longitude}`;
-    console.log("[API] location.coords received and valid:");
+    url += `&lat=${latitude}&lon=${longitude}`;
+    console.log(`[API] location.coords received: lat=${latitude}, lon=${longitude}`);
+  }
+  if (radius !== undefined) {
+    url += `&radius=${radius}`;
+    console.log(`[API] radius received: ${radius}`);
   }
   try {
     const response = await fetch(url);

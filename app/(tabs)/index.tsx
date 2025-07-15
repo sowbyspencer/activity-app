@@ -57,6 +57,8 @@ async function resetAndFetchActivities(
   });
 }
 
+const DEFAULT_RADIUS_KM = 10;
+
 export default function ActivitySwiper() {
   const colorScheme = useColorScheme();
   const navigation = useNavigation();
@@ -78,12 +80,12 @@ export default function ActivitySwiper() {
   // Fetch activities from the server and add to the bottom of the stack
   // loc: optional latitude/longitude to use for the fetch
   const fetchAndSetActivities = useCallback(
-    async (loc?: { latitude: number; longitude: number } | null) => {
+    async (loc?: { latitude: number; longitude: number } | null, radius: number = DEFAULT_RADIUS_KM) => {
       // If no user is logged in, do nothing
       if (!userId) return;
       await withLoading(setLoading, async () => {
-        // Fetch activities from the API, passing location if available
-        const data = await fetchActivities(userId, loc ? { coords: loc } : undefined);
+        // Fetch activities from the API, passing location and radius if available
+        const data = await fetchActivities(userId, loc ? { coords: loc } : undefined, radius);
         // Add new activities to the bottom of the stack, avoiding duplicates
         setActivities((prev) => mergeUniqueActivities(prev, data));
         // If location was used, store it as the last fetched location
@@ -98,7 +100,7 @@ export default function ActivitySwiper() {
     if (!userId || !coords) return;
     const { latitude, longitude } = coords;
     if (!lastFetchedLocation || lastFetchedLocation.latitude !== latitude || lastFetchedLocation.longitude !== longitude) {
-      fetchAndSetActivities({ latitude, longitude });
+      fetchAndSetActivities({ latitude, longitude }, DEFAULT_RADIUS_KM);
     }
   }, [coords, userId]);
 
@@ -124,9 +126,9 @@ export default function ActivitySwiper() {
       }
       if (userId) {
         if (coords) {
-          fetchAndSetActivities(coords);
+          fetchAndSetActivities(coords, DEFAULT_RADIUS_KM);
         } else {
-          // fetchAndSetActivities();
+          // fetchAndSetActivities(undefined, DEFAULT_RADIUS_KM);
           console.warn("[ActivitySwiper] No coords available to fetch activities");
         }
       }
@@ -143,7 +145,7 @@ export default function ActivitySwiper() {
       const newActivities = prev.filter((_, idx) => idx !== currentActivity);
       if (newActivities.length === 0 && userId) {
         // Refresh activities if stack is empty
-        fetchAndSetActivities();
+        fetchAndSetActivities(undefined, DEFAULT_RADIUS_KM);
       }
       return newActivities;
     });

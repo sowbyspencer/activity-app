@@ -15,7 +15,12 @@ export default function useDeviceLocation(key?: number) {
                 console.log('Permission denied');
                 return;
             }
-            let loc = await Location.getCurrentPositionAsync({});
+            // Try last known position first (fast)
+            let loc = await Location.getLastKnownPositionAsync();
+            if (!loc) {
+                // If not available, request new position with lower accuracy
+                loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+            }
             if (loc && loc.coords) {
                 setCoords({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
                 setErrorMsg(null); // Clear error if location is retrieved

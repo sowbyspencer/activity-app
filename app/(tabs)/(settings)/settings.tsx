@@ -9,9 +9,10 @@ export default function SettingsScreen() {
   const colorScheme = useColorScheme();
   const router = useRouter();
   const { radius, setRadius } = useRadius();
+  const [radiusInput, setRadiusInput] = React.useState(radius.toString());
 
   useEffect(() => {
-    console.log("[Settings] Current radius:", radius);
+    setRadiusInput(radius.toString());
   }, [radius]);
 
   const handleRefreshDeclined = async () => {
@@ -34,10 +35,25 @@ export default function SettingsScreen() {
   };
 
   const handleRadiusChange = (value: string) => {
-    // Only allow positive whole numbers between 1 and 3500
+    // Allow empty string for editing
+    setRadiusInput(value);
+    // Only set radius if valid number
     const num = Number(value);
-    if (!isNaN(num) && num > 0 && num <= 3500) {
-      setRadius(num);
+    if (value !== "" && !isNaN(num)) {
+      if (num > 3500) {
+        setRadius(3500);
+        setRadiusInput("3500");
+      } else if (num > 0) {
+        setRadius(num);
+      }
+    }
+  };
+
+  const handleRadiusBlur = () => {
+    // If input is empty, set radius to 1
+    if (radiusInput === "") {
+      setRadius(1);
+      setRadiusInput("1");
     }
   };
 
@@ -67,8 +83,9 @@ export default function SettingsScreen() {
               width: 120,
             }}
             keyboardType="number-pad"
-            value={radius.toString()}
+            value={radiusInput}
             onChangeText={handleRadiusChange}
+            onBlur={handleRadiusBlur}
             maxLength={4}
           />
           <Text style={{ fontSize: 14, marginTop: 4, color: colorScheme === "dark" ? "#aaa" : "#555" }}>Enter a value between 1 and 3,500</Text>

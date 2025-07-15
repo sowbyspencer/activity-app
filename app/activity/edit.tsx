@@ -5,6 +5,7 @@ import ActivityForm from "@/components/ActivityForm";
 import { useAuth } from "@/context/AuthContext";
 import { Alert, View, Text, ActivityIndicator } from "react-native";
 import CustomButton from "@/components/ui/CustomButton";
+import { useLocationContext } from "@/context/LocationContext";
 
 export default function EditActivityScreen() {
   const navigation = useNavigation();
@@ -12,6 +13,7 @@ export default function EditActivityScreen() {
   const { userId } = useAuth();
   const [processing, setProcessing] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const { coords } = useLocationContext(); // Use shared location context
   // Type-safe access to route params
   const activity = route.params && typeof route.params === "object" && "activity" in route.params ? JSON.parse(route.params.activity as string) : {};
 
@@ -34,6 +36,7 @@ export default function EditActivityScreen() {
     try {
       setProcessing(true);
       const formData = new FormData();
+      console.log("[FRONTEND] Editing activity with form:", form);
       // Only append fields that have changed
       if (form.name !== activity.name) formData.append("name", form.name);
       if (form.location !== activity.location) formData.append("location", form.location);
@@ -48,42 +51,51 @@ export default function EditActivityScreen() {
       if (form.available_thu !== activity.available_thu) formData.append("available_thu", form.available_thu ? "true" : "false");
       if (form.available_fri !== activity.available_fri) formData.append("available_fri", form.available_fri ? "true" : "false");
       if (form.available_sat !== activity.available_sat) formData.append("available_sat", form.available_sat ? "true" : "false");
-      // Always send user_id for now
       formData.append("user_id", userId ? String(userId) : "");
-
+      // Add latitude and longitude if available
+      console.log("[FRONTEND] Device coords:", coords);
+      if (coords && coords.latitude && coords.longitude) {
+        formData.append("lat", String(coords.latitude));
+        formData.append("lon", String(coords.longitude));
+      } else {
+        console.warn("[FRONTEND] No device coords available, lat/lon will be null");
+      }
       // Handle images: only send new images as files, keep existing URLs as-is
       if (form.images && Array.isArray(form.images)) {
         form.images.forEach((img) => {
           if (img.startsWith("file://") || img.startsWith("content://")) {
-            // New image picked from device, send as file
-            formData.append("images", {
+            const imageFile = {
               uri: img,
               name: "activity-image.jpg",
               type: "image/jpeg",
-            } as any);
+            };
+            console.log("[FRONTEND] Adding image to FormData:", imageFile);
+            formData.append("images", imageFile as any);
           } else {
-            // Existing image URL, send as string (backend should merge)
+            console.log("[FRONTEND] Adding existing image URL to FormData:", img);
             formData.append("existingImages", img);
           }
         });
       }
-
+      console.log("[FRONTEND] Submitting FormData to backend...");
       const response = await fetch(`${API_URL}/activities/${activity.id}`, {
         method: "PUT",
         body: formData,
       });
       setProcessing(false);
       if (response.ok) {
+        const result = await response.json();
+        console.log("[FRONTEND] Activity updated successfully:", result);
         alert("Activity updated successfully!");
         navigation.goBack();
       } else {
         const errorData = await response.json();
-        console.error("[FRONTEND] Error response from server:", errorData);
+        console.error("[FRONTEND] Failed to update activity:", errorData);
         alert(`Failed to update activity: ${errorData.error}`);
       }
     } catch (error) {
       setProcessing(false);
-      console.error("[FRONTEND] Error updating activity:", error);
+      console.error("[FRONTEND] Error in handleEdit:", error);
     }
   };
 

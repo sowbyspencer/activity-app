@@ -97,7 +97,7 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
 
     if (!result.canceled) {
       const uri = result.assets[0].uri;
-      console.log("[EditActivity] Selected image URI:", uri);
+      console.log("[EditActivity] Selected image URI");
       setForm((prev) => ({
         ...prev,
         images: [...prev.images, uri],

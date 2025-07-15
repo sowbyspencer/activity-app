@@ -132,3 +132,11 @@ Join our community of developers creating universal apps.
 - Added support for user authentication and profile management.
 - Implemented group and chat functionality with real-time message fetching.
 - Included database schema and sample data for backend setup.
+
+## Location-Aware Activity Filtering
+
+- Activities now require latitude and longitude (lat/lon) for creation and editing.
+- The legacy `location` string field is deprecated and will be removed from the database and API.
+- Activity discovery and filtering uses device location (lat/lon) and a user-selected radius (in km).
+- Planned: Map/address picker for activity creation/editing.
+- All relevant API requests and responses now use lat/lon and radius for location-based logic.

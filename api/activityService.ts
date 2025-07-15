@@ -1,5 +1,8 @@
 import { API_URL } from "./config";
 
+// fetchActivities now requires device lat/lon and user-selected radius for location-based filtering.
+// The legacy 'location' string field is deprecated and will be removed from requests and responses.
+
 export const fetchActivities = async (userId: string | number,
   location: { coords: { latitude: number; longitude: number } },
   radius?: number) => {

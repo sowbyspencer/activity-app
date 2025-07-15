@@ -1,6 +1,9 @@
 import * as Location from 'expo-location';
 import { useEffect, useState } from 'react';
 
+// This hook provides device latitude and longitude for location-aware activity filtering.
+// Used for passing lat/lon to activity fetch and creation APIs.
+
 // Custom hook to get device latitude and longitude only
 export default function useDeviceLocation(key?: number) {
     const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);

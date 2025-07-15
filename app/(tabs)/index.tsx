@@ -89,7 +89,16 @@ export default function ActivitySwiper() {
       console.log("[ActivitySwiper] Fetching activities with radius:", effectiveRadius);
       await withLoading(setLoading, async () => {
         const data = await fetchActivities(userId, { coords: loc }, effectiveRadius);
-        setActivities((prev) => mergeUniqueActivities(prev, data));
+        // Remove activities not in the new fetch
+        setActivities((prev) => {
+          const newIds = new Set(data.map((a) => a.id));
+          // Keep only activities in both prev and new fetch
+          const filteredPrev = prev.filter((a) => newIds.has(a.id));
+          // Add new activities not already in prev
+          const existingIds = new Set(filteredPrev.map((a) => a.id));
+          const uniqueNew = data.filter((a) => !existingIds.has(a.id));
+          return [...filteredPrev, ...uniqueNew];
+        });
         setLastFetchedLocation(loc);
       });
     },

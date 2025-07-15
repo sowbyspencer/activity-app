@@ -9,7 +9,6 @@ import FormWrapper from "@/components/ui/FormWrapper";
 type ActivityFormProps = {
   initialData?: {
     name?: string;
-    location?: string;
     has_cost?: boolean;
     cost?: string;
     url?: string;
@@ -29,7 +28,6 @@ type ActivityFormProps = {
 export default function ActivityForm({ initialData, onSubmit }: ActivityFormProps) {
   const [form, setForm] = useState({
     name: initialData?.name || "",
-    location: initialData?.location || "",
     has_cost: initialData?.has_cost || false,
     cost: initialData?.cost || "",
     url: initialData?.url || "",
@@ -49,7 +47,6 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
 
   // Refs for input focus
   const nameRef = useRef(null);
-  const locationRef = useRef(null);
   const costRef = useRef(null);
   const urlRef = useRef(null);
   const descriptionRef = useRef(null);
@@ -57,7 +54,6 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
   const validate = () => {
     const newErrors: any = {};
     if (!form.name.trim()) newErrors.name = "Name is required.";
-    if (!form.location.trim()) newErrors.location = "Location is required.";
     // Cost: allow empty, 'free', or 'none' (case-insensitive) as null
     if (form.cost && !/^(free|none)$/i.test(form.cost.trim()) && isNaN(Number(form.cost))) {
       newErrors.cost = "Cost must be a number, 'Free', or 'None'. Leave blank if not applicable.";
@@ -130,7 +126,6 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
   // Determine if all required fields are filled (for disabling Submit)
   const isFormComplete =
     form.name.trim() &&
-    form.location.trim() &&
     form.description.trim() &&
     (!form.cost || !isNaN(Number(form.cost)) || /^(free|none)$/i.test(form.cost.trim())) &&
     (!form.url ||
@@ -154,17 +149,14 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
         onChangeText={(text) => setForm({ ...form, name: text })}
         error={errors.name}
         returnKeyType="next"
-        onSubmitEditing={() => locationRef.current && locationRef.current.focus()}
       />
-      <CustomInput
-        ref={locationRef}
-        placeholder="Location"
-        value={form.location}
-        onChangeText={(text) => setForm({ ...form, location: text })}
-        error={errors.location}
-        returnKeyType="next"
-        onSubmitEditing={() => costRef.current && costRef.current.focus()}
-      />
+      {/* Placeholder for location/address selector */}
+      <View style={{ marginBottom: 16 }}>
+        <Text style={{ fontSize: 16, fontWeight: "bold", marginBottom: 6 }}>Location (coming soon)</Text>
+        <Text style={{ color: "#888", fontSize: 13 }}>
+          A map/address picker will be added here in a future update. Currently, activities use device latitude/longitude.
+        </Text>
+      </View>
       <CustomInput
         ref={costRef}
         placeholder="Cost"

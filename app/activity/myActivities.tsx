@@ -11,7 +11,6 @@ type Activity = {
   id: number;
   name: string;
   description: string;
-  location: string;
   has_cost: boolean;
   cost: number;
   available_sun: boolean;
@@ -23,6 +22,8 @@ type Activity = {
   available_sat: boolean;
   url: string;
   images: string[];
+  lat?: number;
+  lon?: number;
 };
 
 export default function MyActivitiesScreen() {

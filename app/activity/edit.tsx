@@ -19,7 +19,6 @@ export default function EditActivityScreen() {
 
   const handleEdit = async (form: {
     name: string;
-    location: string;
     has_cost: boolean;
     cost?: string | null;
     url?: string | null;
@@ -39,7 +38,6 @@ export default function EditActivityScreen() {
       console.log("[FRONTEND] Editing activity with form:", form);
       // Only append fields that have changed
       if (form.name !== activity.name) formData.append("name", form.name);
-      if (form.location !== activity.location) formData.append("location", form.location);
       if (form.description !== activity.description) formData.append("description", form.description);
       if (form.has_cost !== activity.has_cost) formData.append("has_cost", form.has_cost ? "true" : "false");
       if (form.cost !== activity.cost) formData.append("cost", form.cost ?? "");

@@ -14,7 +14,6 @@ export default function CreateActivityScreen() {
 
   const handleCreate = async (form: {
     name: string;
-    location: string;
     has_cost: boolean;
     cost: string;
     url: string;
@@ -33,7 +32,6 @@ export default function CreateActivityScreen() {
       const formData = new FormData();
       console.log("[FRONTEND] Creating activity with form:", form);
       formData.append("name", form.name);
-      formData.append("location", form.location);
       formData.append("has_cost", form.has_cost ? "true" : "false");
 
       // Normalize cost: convert 'Free', 'none', or blank to empty string

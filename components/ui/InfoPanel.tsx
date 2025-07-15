@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Linking,
-} from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Linking } from "react-native";
 import { useColorScheme } from "@/hooks/useColorScheme";
 
 export default function InfoPanel({ activity }) {
@@ -16,38 +10,19 @@ export default function InfoPanel({ activity }) {
     <View style={styles.contentWrapper}>
       {/* Info Content */}
       <View style={styles.content}>
-        <Text
-          style={[
-            styles.text,
-            { color: colorScheme === "dark" ? "white" : "black" },
-          ]}
-        >
+        <Text style={[styles.text, { color: colorScheme === "dark" ? "white" : "black" }]}>
           {activity.description || "No description available."}
         </Text>
-        {activity.location && (
-          <Text
-            style={[
-              styles.text,
-              { color: colorScheme === "dark" ? "white" : "black" },
-            ]}
-          >
-            📍 Location: {activity.location}
+        {/* Remove legacy location display. Optionally show lat/lon if available */}
+        {activity.lat && activity.lon && (
+          <Text style={[styles.text, { color: colorScheme === "dark" ? "white" : "black" }]}>
+            📍 Lat/Lon: {activity.lat}, {activity.lon}
           </Text>
         )}
-        <Text
-          style={[
-            styles.text,
-            { color: colorScheme === "dark" ? "white" : "black" },
-          ]}
-        >
+        <Text style={[styles.text, { color: colorScheme === "dark" ? "white" : "black" }]}>
           💰 Cost: {activity.has_cost ? `$${activity.cost}` : "Free"}
         </Text>
-        <Text
-          style={[
-            styles.text,
-            { color: colorScheme === "dark" ? "white" : "black" },
-          ]}
-        >
+        <Text style={[styles.text, { color: colorScheme === "dark" ? "white" : "black" }]}>
           🗓 Available:
           {activity.available_sun ? " Sun" : ""}
           {activity.available_mon ? " Mon" : ""}
@@ -59,14 +34,7 @@ export default function InfoPanel({ activity }) {
         </Text>
         {activity.url && (
           <TouchableOpacity onPress={() => Linking.openURL(activity.url)}>
-            <Text
-              style={[
-                styles.linkText,
-                { color: colorScheme === "dark" ? "lightblue" : "blue" },
-              ]}
-            >
-              🔗 {activity.url}
-            </Text>
+            <Text style={[styles.linkText, { color: colorScheme === "dark" ? "lightblue" : "blue" }]}>🔗 {activity.url}</Text>
           </TouchableOpacity>
         )}
       </View>

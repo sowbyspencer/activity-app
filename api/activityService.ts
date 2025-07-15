@@ -9,7 +9,7 @@ export const fetchActivities = async (userId: string | number,
   if (location && location.coords) {
     const { latitude, longitude } = location.coords;
     // url += `&lat=${latitude}&lon=${longitude}`;
-    console.log("[API]Fetching activities with lat/lon:", { latitude, longitude });
+    console.log("[API] location.coords received and valid:");
   }
   try {
     const response = await fetch(url);

@@ -8,6 +8,7 @@ import { Ionicons } from "@expo/vector-icons";
 import useDeviceLocation from "@/hooks/useDeviceLocation";
 import * as Linking from "expo-linking";
 import { useRadius } from "@/context/RadiusContext";
+import { useRouter } from "expo-router";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -73,6 +74,7 @@ export default function ActivitySwiper() {
   const [locationRefreshKey, setLocationRefreshKey] = useState(0);
   const { coords, errorMsg } = useDeviceLocation(locationRefreshKey);
   const [lastFetchedLocation, setLastFetchedLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const router = useRouter();
 
   // Animated values for swiping
   const translateX = useRef(new Animated.Value(0)).current;
@@ -358,7 +360,26 @@ export default function ActivitySwiper() {
           backgroundColor: colorScheme === "dark" ? "black" : "white",
         }}
       >
-        <Text style={{ fontSize: 20, color: colorScheme === "dark" ? "white" : "black", marginBottom: 20 }}>No more activities to swipe!</Text>
+        <Text style={{ fontSize: 20, color: colorScheme === "dark" ? "white" : "black", marginBottom: 20, textAlign: "center" }}>
+          No more activities to swipe!
+        </Text>
+        <Text style={{ fontSize: 16, color: colorScheme === "dark" ? "white" : "black", marginBottom: 16, textAlign: "center" }}>
+          To view more activities:
+        </Text>
+        {/* Increase Distance Button visually above Refresh Declined Activities */}
+        <TouchableOpacity
+          style={{
+            backgroundColor: "#007AFF",
+            paddingHorizontal: 24,
+            paddingVertical: 12,
+            borderRadius: 8,
+            marginBottom: 12,
+          }}
+          onPress={() => router.push({ pathname: "/(tabs)/(settings)/settings" })}
+        >
+          <Text style={{ color: "white", fontWeight: "bold" }}>Increase Distance</Text>
+        </TouchableOpacity>
+        <Text style={{ fontSize: 16, color: colorScheme === "dark" ? "white" : "black", marginBottom: 8, textAlign: "center" }}>or</Text>
         <TouchableOpacity
           style={{
             backgroundColor: "#007AFF",

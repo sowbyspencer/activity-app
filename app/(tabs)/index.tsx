@@ -4,7 +4,6 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { fetchActivities, swipeActivity, resetDeclinedActivities } from "@/api/activityService";
 import { useAuth } from "@/context/AuthContext";
-import { API_URL } from "@/api/config";
 import { Ionicons } from "@expo/vector-icons";
 import useDeviceLocation from "@/hooks/useDeviceLocation";
 import * as Linking from "expo-linking";
@@ -32,6 +31,10 @@ interface Activity {
 
 // Helper to merge new activities, avoiding duplicates
 function mergeUniqueActivities(prev: Activity[], newData: Activity[]): Activity[] {
+  if (!Array.isArray(newData)) {
+    console.error("mergeUniqueActivities: newData is not an array", newData);
+    return prev;
+  }
   const existingIds = new Set(prev.map((a) => a.id));
   const uniqueNew = newData.filter((a) => !existingIds.has(a.id));
   return [...prev, ...uniqueNew];
@@ -57,7 +60,7 @@ async function resetAndFetchActivities(
   });
 }
 
-const DEFAULT_RADIUS_KM = 10;
+const DEFAULT_RADIUS_KM = 50;
 
 export default function ActivitySwiper() {
   const colorScheme = useColorScheme();
@@ -81,15 +84,11 @@ export default function ActivitySwiper() {
   // loc: optional latitude/longitude to use for the fetch
   const fetchAndSetActivities = useCallback(
     async (loc?: { latitude: number; longitude: number } | null, radius: number = DEFAULT_RADIUS_KM) => {
-      // If no user is logged in, do nothing
-      if (!userId) return;
+      if (!userId || !loc) return;
       await withLoading(setLoading, async () => {
-        // Fetch activities from the API, passing location and radius if available
-        const data = await fetchActivities(userId, loc ? { coords: loc } : undefined, radius);
-        // Add new activities to the bottom of the stack, avoiding duplicates
+        const data = await fetchActivities(userId, { coords: loc }, radius);
         setActivities((prev) => mergeUniqueActivities(prev, data));
-        // If location was used, store it as the last fetched location
-        if (loc) setLastFetchedLocation(loc);
+        setLastFetchedLocation(loc);
       });
     },
     [userId]

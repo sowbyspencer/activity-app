@@ -46,8 +46,9 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
     available_fri: initialData?.available_fri || false,
     available_sat: initialData?.available_sat || false,
     address: initialData?.address || "",
-    latitude: initialData?.latitude ?? null,
-    longitude: initialData?.longitude ?? null,
+    latitude: typeof initialData?.latitude !== "undefined" ? initialData.latitude : typeof initialData?.lat !== "undefined" ? initialData.lat : null,
+    longitude:
+      typeof initialData?.longitude !== "undefined" ? initialData.longitude : typeof initialData?.lon !== "undefined" ? initialData.lon : null,
   });
 
   const [showRemoveButtons, setShowRemoveButtons] = useState(false);
@@ -61,15 +62,28 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
 
   // On mount, if editing and address is pre-filled, trust DB values
   useEffect(() => {
-    if (initialData?.address && initialData.latitude != null && initialData.longitude != null) {
+    console.log("[DEBUG] ActivityForm initialData:", initialData);
+    console.log("[DEBUG] ActivityForm initial form state:", form);
+    // Support both latitude/longitude and lat/lon from initialData
+    const address = initialData?.address;
+    const latitude =
+      typeof initialData?.latitude !== "undefined" ? initialData.latitude : typeof initialData?.lat !== "undefined" ? initialData.lat : null;
+    const longitude =
+      typeof initialData?.longitude !== "undefined" ? initialData.longitude : typeof initialData?.lon !== "undefined" ? initialData.lon : null;
+    if (address && latitude != null && longitude != null) {
       setForm((prev) => ({
         ...prev,
-        address: initialData.address,
-        latitude: initialData.latitude,
-        longitude: initialData.longitude,
+        address,
+        latitude,
+        longitude,
       }));
     }
   }, []);
+
+  // Log form state whenever it changes
+  useEffect(() => {
+    console.log("[DEBUG] ActivityForm form state changed:", form);
+  }, [form]);
 
   // Helper to validate address with ArcGIS geoservice
   const validateAddressWithGIS = async (address: string, latitude: number | null, longitude: number | null) => {
@@ -119,17 +133,16 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
     const formLon = form.longitude != null ? Number(form.longitude) : null;
     const initialLat = initialData && initialData.latitude != null ? Number(initialData.latitude) : null;
     const initialLon = initialData && initialData.longitude != null ? Number(initialData.longitude) : null;
-    if (initialData && form.address === initialData.address && formLat === initialLat && formLon === initialLon) {
-      // Unchanged from DB, always valid, skip all address/lat/lon checks
+    // Always require non-empty address, lat, lon
+    if (!form.address || !form.address.trim() || formLat == null || formLon == null) {
+      addressValid = false;
+      skipAddressValidation = false;
+    } else if (initialData && form.address === initialData.address && formLat === initialLat && formLon === initialLon) {
+      // Unchanged from DB, always valid, skip GIS validation
       skipAddressValidation = true;
       addressValid = true;
     } else if (initialData && (form.address !== initialData.address || formLat !== initialLat || formLon !== initialLon)) {
-      // Only validate if all are present
-      if (form.address && form.address.trim() && formLat != null && formLon != null) {
-        addressValid = await validateAddressWithGIS(form.address, formLat, formLon);
-      } else {
-        addressValid = false;
-      }
+      addressValid = await validateAddressWithGIS(form.address, formLat, formLon);
     }
     if (!skipAddressValidation && (!form.address || !form.address.trim() || formLat == null || formLon == null || !addressValid)) {
       newErrors.address = "Please select a valid address (validated by GIS).";
@@ -139,6 +152,7 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
   };
 
   const handleSubmit = async () => {
+    console.log("[DEBUG] handleSubmit: form.latitude =", form.latitude, "form.longitude =", form.longitude);
     const valid = await validate();
     if (!valid) return;
     // Normalize cost

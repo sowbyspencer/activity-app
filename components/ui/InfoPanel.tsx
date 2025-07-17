@@ -10,15 +10,18 @@ export default function InfoPanel({ activity }) {
     <View style={styles.contentWrapper}>
       {/* Info Content */}
       <View style={styles.content}>
+        {/* Show activity description */}
         <Text style={[styles.text, { color: colorScheme === "dark" ? "white" : "black" }]}>
           {activity.description || "No description available."}
         </Text>
-        {/* Remove legacy location display. Optionally show lat/lon if available */}
-        {activity.lat && activity.lon && (
-          <Text style={[styles.text, { color: colorScheme === "dark" ? "white" : "black" }]}>
-            📍 Lat/Lon: {activity.lat}, {activity.lon}
-          </Text>
-        )}
+        {/* Show address if available, otherwise show null */}
+        <Text style={[styles.text, { color: colorScheme === "dark" ? "white" : "black" }]}>
+          🏠 Address: {activity.address ? activity.address : ""}
+        </Text>
+        {/* Show lat/lon, show null if missing */}
+        <Text style={[styles.text, { color: colorScheme === "dark" ? "white" : "black" }]}>
+          📍 Lat/Lon: {activity.lat != null ? activity.lat : "null"}, {activity.lon != null ? activity.lon : ""}
+        </Text>
         <Text style={[styles.text, { color: colorScheme === "dark" ? "white" : "black" }]}>
           💰 Cost: {activity.has_cost ? `$${activity.cost}` : "Free"}
         </Text>

@@ -167,13 +167,13 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
       // Only allow submit if GIS validation passes
       if (!addressValidated) {
         addressValid = false;
-        newErrors.address = "Please verify the address (validated by GIS) before submitting.";
+        newErrors.address = "Please verify the address.";
       } else {
         addressValid = true;
       }
     }
     if (!skipAddressValidation && (!form.address || !form.address.trim() || formLat == null || formLon == null)) {
-      newErrors.address = "Please select a valid address (validated by GIS).";
+      newErrors.address = "Please select a valid address.";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -191,7 +191,7 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
     const valid = await validateAddressWithGIS(item.address, item.location?.y || null, item.location?.x || null);
     setAddressValidated(valid);
     if (!valid) {
-      setErrors((prev) => ({ ...prev, address: "Please select a valid address (validated by GIS)." }));
+      setErrors((prev) => ({ ...prev, address: "Please select a valid address." }));
     } else {
       setErrors((prev) => {
         const { address, ...rest } = prev;

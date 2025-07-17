@@ -25,7 +25,6 @@ export default function ArcGISAddressSearch({
 
   const arcgisKey = Constants.expoConfig?.extra?.arcgisApiKey;
 
-  // Log layout changes
   const [layout, setLayout] = useState<any>(null);
 
   const searchAddress = async (text: string) => {
@@ -56,10 +55,6 @@ export default function ArcGISAddressSearch({
         return;
       }
       setResults(data.candidates || []);
-      console.log(
-        "[ArcGIS] Candidates:",
-        (data.candidates || []).map((c: any) => c.address)
-      );
       const open = (data.candidates || []).length > 0;
       setDropdownVisible(open);
       if (onDropdownOpen) onDropdownOpen(open);

@@ -24,6 +24,8 @@ export default function CreateActivityScreen() {
     available_thu: boolean;
     available_fri: boolean;
     available_sat: boolean;
+    latitude?: number;
+    longitude?: number;
   }) => {
     try {
       setProcessing(true);
@@ -49,6 +51,10 @@ export default function CreateActivityScreen() {
       formData.append("available_thu", String(form.available_thu));
       formData.append("available_fri", String(form.available_fri));
       formData.append("available_sat", String(form.available_sat));
+
+      // Append lat/lon if present
+      formData.append("lat", String(form.latitude));
+      formData.append("lon", String(form.longitude));
 
       form.images.forEach((imageUri: string, index: number) => {
         const imageFile = {

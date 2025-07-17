@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { ScrollView, Image, TouchableOpacity, View, Text } from "react-native";
+import { FlatList, Image, TouchableOpacity, View, Text } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import CustomInput from "@/components/ui/CustomInput";
 import CustomButton from "@/components/ui/CustomButton";
@@ -29,6 +29,14 @@ type ActivityFormProps = {
   onSubmit: (form: any) => Promise<void>;
 };
 
+type ErrorState = {
+  name?: string;
+  cost?: string;
+  url?: string;
+  description?: string;
+  images?: string;
+};
+
 export default function ActivityForm({ initialData, onSubmit }: ActivityFormProps) {
   const [form, setForm] = useState({
     name: initialData?.name || "",
@@ -50,14 +58,14 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
   });
 
   const [showRemoveButtons, setShowRemoveButtons] = useState(false);
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<ErrorState>({});
   const [addressDropdownOpen, setAddressDropdownOpen] = useState(false);
 
   // Refs for input focus
-  const nameRef = useRef(null);
-  const costRef = useRef(null);
-  const urlRef = useRef(null);
-  const descriptionRef = useRef(null);
+  const nameRef = useRef<any>(null);
+  const costRef = useRef<any>(null);
+  const urlRef = useRef<any>(null);
+  const descriptionRef = useRef<any>(null);
 
   const validate = () => {
     const newErrors: any = {};
@@ -148,9 +156,11 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
     form.images &&
     form.images.length > 0;
 
-  return (
-    <ScrollView keyboardShouldPersistTaps="handled" scrollEnabled={!addressDropdownOpen}>
-      <FormWrapper>
+  // Compose form fields as items for FlatList
+  const formItems = [
+    {
+      key: "name",
+      render: () => (
         <CustomInput
           ref={nameRef}
           placeholder="Name"
@@ -159,7 +169,11 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
           error={errors.name}
           returnKeyType="next"
         />
-        {/* ArcGIS Address Search */}
+      ),
+    },
+    {
+      key: "address",
+      render: () => (
         <ArcGISAddressSearch
           onSelect={(item) => {
             setForm((prev) => ({
@@ -169,14 +183,21 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
               longitude: item.location?.x || null,
             }));
           }}
-          onDropdownOpen={setAddressDropdownOpen}
         />
-        {/* Show selected location if available */}
-        {form.location ? (
+      ),
+    },
+    {
+      key: "selectedLocation",
+      render: () =>
+        form.location ? (
           <View style={{ marginBottom: 8 }}>
             <Text style={{ fontSize: 14, color: "#333" }}>Selected: {form.location}</Text>
           </View>
-        ) : null}
+        ) : null,
+    },
+    {
+      key: "cost",
+      render: () => (
         <CustomInput
           ref={costRef}
           placeholder="Cost"
@@ -186,6 +207,11 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
           returnKeyType="next"
           onSubmitEditing={() => urlRef.current && urlRef.current.focus()}
         />
+      ),
+    },
+    {
+      key: "url",
+      render: () => (
         <CustomInput
           ref={urlRef}
           placeholder="URL"
@@ -195,6 +221,11 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
           returnKeyType="next"
           onSubmitEditing={() => descriptionRef.current && descriptionRef.current.focus()}
         />
+      ),
+    },
+    {
+      key: "description",
+      render: () => (
         <CustomInput
           ref={descriptionRef}
           placeholder="Description"
@@ -204,20 +235,21 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
           returnKeyType="done"
           onSubmitEditing={handleSubmit}
         />
-
-        <CustomButton title="Add Images" onPress={pickImage} color="#007AFF" />
-        {errors.images && <Text style={{ color: "#FF3B30", marginBottom: 10, marginLeft: 5, fontSize: 13 }}>{errors.images}</Text>}
-        <ScrollView
+      ),
+    },
+    {
+      key: "addImages",
+      render: () => <CustomButton title="Add Images" onPress={pickImage} color="#007AFF" />,
+    },
+    {
+      key: "images",
+      render: () => (
+        <FlatList
+          data={form.images}
           horizontal
+          keyExtractor={(_, i) => i.toString()}
           style={{ marginBottom: 10 }}
-          onTouchStart={(e) => {
-            const { locationX, locationY } = e.nativeEvent;
-            if (locationY < 0 || locationX < 0) {
-              handleTapOutsideScrollView();
-            }
-          }}
-        >
-          {form.images.map((uri: string, index: number) => (
+          renderItem={({ item: uri, index }) => (
             <TouchableOpacity key={index} onLongPress={handleLongPressImage} style={{ position: "relative" }}>
               <Image
                 source={{ uri }}
@@ -244,9 +276,13 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
                 </TouchableOpacity>
               )}
             </TouchableOpacity>
-          ))}
-        </ScrollView>
-
+          )}
+        />
+      ),
+    },
+    {
+      key: "availability",
+      render: () => (
         <AvailabilitySelector
           available_sun={form.available_sun}
           available_mon={form.available_mon}
@@ -255,11 +291,29 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
           available_thu={form.available_thu}
           available_fri={form.available_fri}
           available_sat={form.available_sat}
-          onToggle={(day) => toggleAvailability(`available_${day}`)}
+          onToggle={(day: string) => toggleAvailability(day as keyof typeof form)}
         />
-
+      ),
+    },
+    {
+      key: "submit",
+      render: () => (
         <CustomButton title="Submit" onPress={handleSubmit} color="#007AFF" disabled={!isFormComplete} opacity={!isFormComplete ? 0.5 : 1} />
-      </FormWrapper>
-    </ScrollView>
+      ),
+    },
+    {
+      key: "imagesError",
+      render: () => (errors.images ? <Text style={{ color: "#FF3B30", marginBottom: 10, marginLeft: 5, fontSize: 13 }}>{errors.images}</Text> : null),
+    },
+  ];
+
+  return (
+    <FlatList
+      data={formItems}
+      keyExtractor={(item) => item.key}
+      renderItem={({ item }) => item.render()}
+      keyboardShouldPersistTaps="handled"
+      ListHeaderComponent={<FormWrapper>{null}</FormWrapper>}
+    />
   );
 }

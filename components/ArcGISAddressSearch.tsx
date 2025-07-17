@@ -13,6 +13,7 @@ export default function ArcGISAddressSearch({
   error, // <-- already added, but will not be used for validation
   onFocus,
   onBlur,
+  onChangeText, // <-- add this prop
 }: {
   onSelect: (result: any) => void;
   style?: any;
@@ -23,6 +24,7 @@ export default function ArcGISAddressSearch({
   error?: boolean;
   onFocus?: () => void;
   onBlur?: () => void;
+  onChangeText?: (text: string) => void; // <-- add this prop
 }) {
   const [query, setQuery] = useState(value || "");
   const [results, setResults] = useState<any[]>([]);
@@ -39,6 +41,7 @@ export default function ArcGISAddressSearch({
 
   const searchAddress = async (text: string) => {
     setQuery(text);
+    if (onChangeText) onChangeText(text); // <-- call onChangeText on every keystroke
     setError(null);
     if (text.length < 3) {
       setResults([]);

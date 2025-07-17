@@ -10,6 +10,9 @@ export default function ArcGISAddressSearch({
   onDropdownOpen,
   value,
   selected,
+  error, // <-- already added
+  onFocus,
+  onBlur,
 }: {
   onSelect: (result: any) => void;
   style?: any;
@@ -17,11 +20,14 @@ export default function ArcGISAddressSearch({
   onDropdownOpen?: (open: boolean) => void;
   value?: string;
   selected?: boolean;
+  error?: boolean;
+  onFocus?: () => void;
+  onBlur?: () => void;
 }) {
   const [query, setQuery] = useState(value || "");
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [errorState, setError] = useState<string | null>(null);
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [selectedState, setSelectedState] = useState(false);
   const colorScheme = useColorScheme();
@@ -85,6 +91,36 @@ export default function ArcGISAddressSearch({
   // Use selected prop if provided, otherwise use internal state
   const isSelected = selected !== undefined ? selected : selectedState;
 
+  // Determine border color and error visibility
+  let borderColor = "#ccc";
+  let borderWidth = 1;
+  let showError = false;
+  if (error) {
+    borderColor = "#FF3B30";
+    borderWidth = 1.5;
+    showError = true;
+  } else if (isSelected && query && query.trim()) {
+    borderColor = "#3CB371";
+    borderWidth = 2;
+  }
+
+  // When the address is cleared, remove green border and error
+  useEffect(() => {
+    if (!query || !query.trim()) {
+      setSelectedState(false);
+    }
+    // If the error is showing and the error prop is now false, also hide error message
+    // (error prop is controlled by parent, so showError will update automatically)
+  }, [query]);
+
+  // When a valid address is selected, remove error and show green border
+  useEffect(() => {
+    if (isSelected && !error && query && query.trim()) {
+      // This will ensure border is green and error message is hidden
+      // No state update needed, just rely on props and logic
+    }
+  }, [isSelected, error, query]);
+
   // Keep query in sync with value prop
   useEffect(() => {
     if (typeof value === "string" && value !== query) {
@@ -95,7 +131,7 @@ export default function ArcGISAddressSearch({
 
   return (
     <View
-      style={[{ marginBottom: 0, position: "relative", borderColor: "transparent", borderWidth: 0 }]}
+      style={[{ marginBottom: 0, position: "relative", borderColor: "transparent", borderWidth: 0 }, style]}
       onLayout={(e) => {
         setLayout(e.nativeEvent.layout);
       }}
@@ -109,31 +145,34 @@ export default function ArcGISAddressSearch({
           {
             width: "100%",
             height: 50,
-            borderWidth: isSelected ? 2 : 1,
-            borderColor: isSelected ? "#3CB371" : "#ccc",
+            borderWidth,
+            borderColor,
             borderRadius: 10,
             paddingHorizontal: 10,
-            marginBottom: 15,
+            marginBottom: 2,
             color: isDark ? "#fff" : "#000",
             backgroundColor: isDark ? "#222" : "#f9f9f9",
           },
           style,
         ]}
-        onFocus={() => {
+        onFocus={(e) => {
           if (results.length > 0) {
             setDropdownVisible(true);
             if (onDropdownOpen) onDropdownOpen(true);
           }
+          if (onFocus) onFocus();
         }}
-        onBlur={() =>
+        onBlur={(e) => {
           setTimeout(() => {
             setDropdownVisible(false);
             if (onDropdownOpen) onDropdownOpen(false);
-          }, 200)
-        }
+          }, 200);
+          if (onBlur) onBlur();
+        }}
       />
+      {showError && <Text style={{ color: "#FF3B30", marginBottom: 10, marginLeft: 5, fontSize: 13 }}>Please select a valid address.</Text>}
       {/* {loading && <ActivityIndicator size="small" color="#007AFF" style={{ marginBottom: 8 }} />} */}
-      {error && <Text style={{ color: "#FF3B30", marginBottom: 8 }}>{error}</Text>}
+      {errorState && <Text style={{ color: "#FF3B30", marginBottom: 8 }}>{errorState}</Text>}
       {dropdownVisible && (
         <View
           style={{

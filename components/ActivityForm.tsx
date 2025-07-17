@@ -29,15 +29,6 @@ type ActivityFormProps = {
   onSubmit: (form: any) => Promise<void>;
 };
 
-type ErrorState = {
-  name?: string;
-  cost?: string;
-  url?: string;
-  description?: string;
-  images?: string;
-  address?: string;
-};
-
 export default function ActivityForm({ initialData, onSubmit }: ActivityFormProps) {
   const [form, setForm] = useState({
     name: initialData?.name || "",
@@ -61,12 +52,27 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
   const [showRemoveButtons, setShowRemoveButtons] = useState(false);
   const [errors, setErrors] = useState<ErrorState>({});
   const [addressSelected, setAddressSelected] = useState(!!initialData?.address);
+  const [addressFocused, setAddressFocused] = useState(false);
 
   // Refs for input focus
   const nameRef = useRef<any>(null);
   const costRef = useRef<any>(null);
   const urlRef = useRef<any>(null);
   const descriptionRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (form.address && form.address.trim() && form.latitude != null && form.longitude != null) {
+      setAddressSelected(true);
+    }
+  }, []); // Run once on mount
+
+  // Real-time address validation only when editing
+  useEffect(() => {
+    if (addressFocused) {
+      validate();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.address, form.latitude, form.longitude, addressFocused]);
 
   const validate = () => {
     const newErrors: any = {};
@@ -145,26 +151,33 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
     setShowRemoveButtons(false);
   };
 
+  // Helper for cost validation
+  const isCostValid = !form.cost || /^(free|none)$/i.test(form.cost.trim()) || !isNaN(Number(form.cost));
+  // Helper for URL validation
+  const isUrlValid =
+    !form.url ||
+    (() => {
+      try {
+        new URL(form.url.trim());
+        return true;
+      } catch {
+        return false;
+      }
+    })();
+
   // Determine if all required fields are filled (for disabling Submit)
-  const isFormComplete =
+  const isFormComplete = Boolean(
     form.name.trim() &&
-    form.description.trim() &&
-    (!form.cost || !isNaN(Number(form.cost)) || /^(free|none)$/i.test(form.cost.trim())) &&
-    (!form.url ||
-      (() => {
-        try {
-          new URL(form.url.trim());
-          return true;
-        } catch {
-          return false;
-        }
-      })()) &&
-    form.images &&
-    form.images.length > 0 &&
-    form.address &&
-    form.address.trim() &&
-    form.latitude != null &&
-    form.longitude != null;
+      form.description.trim() &&
+      isCostValid &&
+      isUrlValid &&
+      form.images &&
+      form.images.length > 0 &&
+      form.address &&
+      form.address.trim() &&
+      form.latitude != null &&
+      form.longitude != null
+  );
 
   // Compose form fields as items for FlatList
   const formItems = [
@@ -184,19 +197,28 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
     {
       key: "address",
       render: () => (
-        <ArcGISAddressSearch
-          value={form.address}
-          selected={addressSelected}
-          onSelect={(item) => {
-            setForm((prev) => ({
-              ...prev,
-              address: item.address,
-              latitude: item.location?.y || null,
-              longitude: item.location?.x || null,
-            }));
-            setAddressSelected(true);
-          }}
-        />
+        <View style={{ marginBottom: 10 }}>
+          <ArcGISAddressSearch
+            value={form.address}
+            selected={addressSelected}
+            error={!!errors.address}
+            onSelect={(item) => {
+              setForm((prev) => ({
+                ...prev,
+                address: item.address,
+                latitude: item.location?.y || null,
+                longitude: item.location?.x || null,
+              }));
+              setAddressSelected(true);
+              if (addressFocused) validate();
+            }}
+            onFocus={() => setAddressFocused(true)}
+            onBlur={() => {
+              setAddressFocused(false);
+              validate();
+            }}
+          />
+        </View>
       ),
     },
     {
@@ -248,40 +270,43 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
     {
       key: "images",
       render: () => (
-        <FlatList
-          data={form.images}
-          horizontal
-          keyExtractor={(_, i) => i.toString()}
-          style={{ marginBottom: 10 }}
-          renderItem={({ item: uri, index }) => (
-            <TouchableOpacity key={index} onLongPress={handleLongPressImage} style={{ position: "relative" }}>
-              <Image
-                source={{ uri }}
-                style={{
-                  width: showRemoveButtons ? 90 : 100,
-                  height: showRemoveButtons ? 90 : 100,
-                  marginRight: 10,
-                  borderRadius: 5,
-                }}
-              />
-              {showRemoveButtons && (
-                <TouchableOpacity
-                  onPress={() => handleRemoveImage(index)}
+        <View style={{ marginBottom: 10 }}>
+          <FlatList
+            data={form.images}
+            horizontal
+            keyExtractor={(_, i) => i.toString()}
+            style={{ marginBottom: 0 }}
+            renderItem={({ item: uri, index }) => (
+              <TouchableOpacity key={index} onLongPress={handleLongPressImage} style={{ position: "relative" }}>
+                <Image
+                  source={{ uri }}
                   style={{
-                    position: "absolute",
-                    top: 5,
-                    right: 5,
-                    backgroundColor: "red",
-                    borderRadius: 15,
-                    padding: 5,
+                    width: showRemoveButtons ? 90 : 100,
+                    height: showRemoveButtons ? 90 : 100,
+                    marginRight: 10,
+                    borderRadius: 5,
                   }}
-                >
-                  <Text style={{ color: "white", fontSize: 12 }}>X</Text>
-                </TouchableOpacity>
-              )}
-            </TouchableOpacity>
-          )}
-        />
+                />
+                {showRemoveButtons && (
+                  <TouchableOpacity
+                    onPress={() => handleRemoveImage(index)}
+                    style={{
+                      position: "absolute",
+                      top: 5,
+                      right: 5,
+                      backgroundColor: "red",
+                      borderRadius: 15,
+                      padding: 5,
+                    }}
+                  >
+                    <Text style={{ color: "white", fontSize: 12 }}>X</Text>
+                  </TouchableOpacity>
+                )}
+              </TouchableOpacity>
+            )}
+          />
+          {errors.images ? <Text style={{ color: "#FF3B30", marginTop: 2, marginLeft: 5, fontSize: 13 }}>{errors.images}</Text> : null}
+        </View>
       ),
     },
     {
@@ -301,18 +326,7 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
     },
     {
       key: "submit",
-      render: () => (
-        <CustomButton title="Submit" onPress={handleSubmit} color="#007AFF" disabled={!isFormComplete} opacity={!isFormComplete ? 0.5 : 1} />
-      ),
-    },
-    {
-      key: "imagesError",
-      render: () => (errors.images ? <Text style={{ color: "#FF3B30", marginBottom: 10, marginLeft: 5, fontSize: 13 }}>{errors.images}</Text> : null),
-    },
-    {
-      key: "addressError",
-      render: () =>
-        errors.address ? <Text style={{ color: "#FF3B30", marginBottom: 10, marginLeft: 5, fontSize: 13 }}>{errors.address}</Text> : null,
+      render: () => <CustomButton title="Submit" onPress={handleSubmit} color="#007AFF" opacity={!isFormComplete ? 0.5 : 1} />,
     },
   ];
 

@@ -1,3 +1,19 @@
+// -----------------------------------------------------------------------------
+// ArcGISAddressSearch.tsx - Address autocomplete/search using ArcGIS API
+// -----------------------------------------------------------------------------
+// Provides a controlled address input with real-time ArcGIS suggestions,
+// dropdown UI, and selection callback. Used in ActivityForm for GIS-validated
+// address entry. Handles error, loading, and selection states.
+//
+// Props:
+//   - onSelect: callback when a suggestion is selected
+//   - value: controlled input value
+//   - selected: whether a valid address is selected
+//   - error: error state for validation
+//   - onFocus/onBlur: for parent validation feedback
+//   - onChangeText: notifies parent on every keystroke
+// -----------------------------------------------------------------------------
+
 import React, { useState, useEffect } from "react";
 import { View, TextInput, FlatList, Text, TouchableOpacity, ActivityIndicator, useColorScheme } from "react-native";
 import Constants from "expo-constants";
@@ -10,10 +26,9 @@ export default function ArcGISAddressSearch({
   onDropdownOpen,
   value,
   selected,
-  error, // <-- already added, but will not be used for validation
+  error, // <-- already added
   onFocus,
   onBlur,
-  onChangeText, // <-- add this prop
 }: {
   onSelect: (result: any) => void;
   style?: any;
@@ -24,8 +39,8 @@ export default function ArcGISAddressSearch({
   error?: boolean;
   onFocus?: () => void;
   onBlur?: () => void;
-  onChangeText?: (text: string) => void; // <-- add this prop
 }) {
+  // State for input query, results, loading, error, dropdown, and selection
   const [query, setQuery] = useState(value || "");
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -34,14 +49,12 @@ export default function ArcGISAddressSearch({
   const [selectedState, setSelectedState] = useState(false);
   const colorScheme = useColorScheme();
   const { coords } = useLocationContext();
-
   const arcgisKey = Constants.expoConfig?.extra?.arcgisApiKey;
-
   const [layout, setLayout] = useState<any>(null);
 
+  // Search ArcGIS for address suggestions on input change
   const searchAddress = async (text: string) => {
     setQuery(text);
-    if (onChangeText) onChangeText(text); // <-- call onChangeText on every keystroke
     setError(null);
     if (text.length < 3) {
       setResults([]);
@@ -80,6 +93,7 @@ export default function ArcGISAddressSearch({
     }
   };
 
+  // Handle selection of a suggestion
   const handleSelect = (item: any) => {
     setQuery(item.address);
     setResults([]);
@@ -90,15 +104,18 @@ export default function ArcGISAddressSearch({
   };
 
   const isDark = colorScheme === "dark";
-
   // Use selected prop if provided, otherwise use internal state
   const isSelected = selected !== undefined ? selected : selectedState;
 
-  // Remove error and validation feedback
-  // Only show border color for selection, not for error
+  // Only show green border if a valid address is selected
   let borderColor = "#ccc";
   let borderWidth = 1;
-  if (isSelected && query && query.trim()) {
+  let showError = false;
+  if (error) {
+    borderColor = "#FF3B30";
+    borderWidth = 1.5;
+    showError = true;
+  } else if (isSelected && query && query.trim()) {
     borderColor = "#3CB371";
     borderWidth = 2;
   }
@@ -128,6 +145,7 @@ export default function ArcGISAddressSearch({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
 
+  // Render input, dropdown, and error states
   return (
     <View
       style={[{ marginBottom: 0, position: "relative", borderColor: "transparent", borderWidth: 0 }, style]}
@@ -169,7 +187,10 @@ export default function ArcGISAddressSearch({
           if (onBlur) onBlur();
         }}
       />
+      {showError && <Text style={{ color: "#FF3B30", marginBottom: 10, marginLeft: 5, fontSize: 13 }}>Please select a valid address.</Text>}
+      {/* {loading && <ActivityIndicator size="small" color="#007AFF" style={{ marginBottom: 8 }} />} */}
       {errorState && <Text style={{ color: "#FF3B30", marginBottom: 8 }}>{errorState}</Text>}
+      {/* Show dropdown with suggestions */}
       {dropdownVisible && (
         <View
           style={{

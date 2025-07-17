@@ -1,11 +1,23 @@
+// -----------------------------------------------------------------------------
+// CustomInput.tsx - Reusable text input with error display
+// -----------------------------------------------------------------------------
+// Provides a styled text input with error message support for forms.
+// Used throughout the app for consistent input UI and validation feedback.
+//
+// Props:
+//   - All TextInput props
+//   - error: error message to display below input
+// -----------------------------------------------------------------------------
+
 import React, { forwardRef } from "react";
 import { TextInput, StyleSheet, View, Text, TextInputProps } from "react-native";
 import { useColorScheme } from "@/hooks/useColorScheme";
 
 interface CustomInputProps extends TextInputProps {
-  error?: string;
+  error?: string; // Optional error message to display below input
 }
 
+// CustomInput: A styled text input with error display for forms
 const CustomInput = forwardRef<TextInput, CustomInputProps>(({ placeholder, value, onChangeText, editable = true, error, ...props }, ref) => {
   const colorScheme = useColorScheme();
 
@@ -21,13 +33,14 @@ const CustomInput = forwardRef<TextInput, CustomInputProps>(({ placeholder, valu
         style={[
           styles.input,
           {
-            color: colorScheme === "dark" ? "white" : "black",
-            backgroundColor: colorScheme === "dark" ? "#222" : "#f9f9f9",
-            borderColor: error ? "#FF3B30" : "#ccc",
+            color: colorScheme === "dark" ? "white" : "black", // Text color by theme
+            backgroundColor: colorScheme === "dark" ? "#222" : "#f9f9f9", // BG color by theme
+            borderColor: error ? "#FF3B30" : "#ccc", // Red border if error
           },
         ]}
         {...props}
       />
+      {/* Show error message below input if present */}
       {error ? (
         <Text
           style={{

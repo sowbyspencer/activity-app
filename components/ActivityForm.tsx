@@ -1,3 +1,16 @@
+// -----------------------------------------------------------------------------
+// ActivityForm.tsx - Main form for creating/editing activities
+// -----------------------------------------------------------------------------
+// Handles all form state, validation, and submission for activity creation/edit.
+// Integrates ArcGISAddressSearch for GIS-validated address entry, image upload,
+// and availability selection. Provides robust validation, error feedback, and
+// controlled form state for both create and edit modes.
+//
+// Props:
+//   - initialData: pre-filled data for edit mode
+//   - onSubmit: callback for form submission
+// ----------------------------------------------------------------------------
+
 import React, { useState, useEffect, useRef } from "react";
 import { FlatList, Image, TouchableOpacity, View, Text } from "react-native";
 import * as ImagePicker from "expo-image-picker";
@@ -6,9 +19,6 @@ import CustomButton from "@/components/ui/CustomButton";
 import AvailabilitySelector from "@/components/ui/AvailabilitySelector";
 import FormWrapper from "@/components/ui/FormWrapper";
 import ArcGISAddressSearch from "@/components/ArcGISAddressSearch";
-import Constants from "expo-constants";
-
-type ErrorState = { [key: string]: string };
 
 type ActivityFormProps = {
   initialData?: {
@@ -26,15 +36,14 @@ type ActivityFormProps = {
     available_fri?: boolean;
     available_sat?: boolean;
     address: string;
-    latitude?: number;
-    longitude?: number;
-    lat?: number;
-    lon?: number;
+    latitude: number;
+    longitude: number;
   };
   onSubmit: (form: any) => Promise<void>;
 };
 
 export default function ActivityForm({ initialData, onSubmit }: ActivityFormProps) {
+  // Form state for all fields, including address, images, and availability
   const [form, setForm] = useState({
     name: initialData?.name || "",
     has_cost: initialData?.has_cost || false,
@@ -50,14 +59,13 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
     available_fri: initialData?.available_fri || false,
     available_sat: initialData?.available_sat || false,
     address: initialData?.address || "",
-    latitude: typeof initialData?.latitude !== "undefined" ? initialData.latitude : typeof initialData?.lat !== "undefined" ? initialData.lat : null,
-    longitude:
-      typeof initialData?.longitude !== "undefined" ? initialData.longitude : typeof initialData?.lon !== "undefined" ? initialData.lon : null,
+    latitude: initialData?.latitude ?? null,
+    longitude: initialData?.longitude ?? null,
   });
   const [showRemoveButtons, setShowRemoveButtons] = useState(false);
   const [errors, setErrors] = useState<ErrorState>({});
-  // Track if address has been GIS validated since last change
-  const [addressValidated, setAddressValidated] = useState(true);
+  const [addressSelected, setAddressSelected] = useState(false); // Set addressSelected to false on load if initialData exists (edit mode)
+  const [addressFocused, setAddressFocused] = useState(false);
 
   // Refs for input focus
   const nameRef = useRef<any>(null);
@@ -67,66 +75,21 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
 
   // On mount, if editing and address is pre-filled, trust DB values
   useEffect(() => {
-    console.log("[DEBUG] ActivityForm initialData:", initialData);
-    console.log("[DEBUG] ActivityForm initial form state:", form);
-    // Support both latitude/longitude and lat/lon from initialData
-    const address = initialData?.address;
-    const latitude =
-      typeof initialData?.latitude !== "undefined" ? initialData.latitude : typeof initialData?.lat !== "undefined" ? initialData.lat : null;
-    const longitude =
-      typeof initialData?.longitude !== "undefined" ? initialData.longitude : typeof initialData?.lon !== "undefined" ? initialData.lon : null;
-    if (address && latitude != null && longitude != null) {
-      setForm((prev) => ({
-        ...prev,
-        address,
-        latitude,
-        longitude,
-      }));
+    // If editing and address is pre-filled, allow submit but do not show green border
+    if (initialData?.address && initialData.latitude != null && initialData.longitude != null) {
+      setAddressSelected(false); // No green border on load
     }
-  }, []);
+  }, []); // Run once on mount
 
-  // Log form state whenever it changes
+  // Real-time address validation only when editing
   useEffect(() => {
-    console.log("[DEBUG] ActivityForm form state changed:", form);
-  }, [form]);
-
-  // When address, latitude, or longitude changes, reset addressValidated if changed from initialData
-  useEffect(() => {
-    const formLat = form.latitude != null ? Number(form.latitude) : null;
-    const formLon = form.longitude != null ? Number(form.longitude) : null;
-    const initialLat =
-      initialData && (initialData.latitude != null ? Number(initialData.latitude) : initialData.lat != null ? Number(initialData.lat) : null);
-    const initialLon =
-      initialData && (initialData.longitude != null ? Number(initialData.longitude) : initialData.lon != null ? Number(initialData.lon) : null);
-    if (initialData && (form.address !== initialData.address || formLat !== initialLat || formLon !== initialLon)) {
-      setAddressValidated(false);
-    } else {
-      setAddressValidated(true);
+    if (addressFocused) {
+      validate();
     }
-  }, [form.address, form.latitude, form.longitude, initialData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.address, form.latitude, form.longitude, addressFocused]);
 
-  // Helper to validate address with ArcGIS geoservice
-  const validateAddressWithGIS = async (address: string, latitude: number | null, longitude: number | null) => {
-    if (!address || latitude == null || longitude == null) return false;
-    try {
-      const arcgisKey = Constants.expoConfig?.extra?.arcgisApiKey;
-      const url = `https://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?f=json&singleLine=${encodeURIComponent(
-        address
-      )}&location=${longitude},${latitude}&outFields=Match_addr,geometry&token=${arcgisKey}`;
-      const res = await fetch(url);
-      const data = await res.json();
-      if (data.candidates && data.candidates.length > 0) {
-        // Accept if any candidate matches the address closely (score > 90)
-        return data.candidates[0].score > 90;
-      }
-      return false;
-    } catch {
-      return false;
-    }
-  };
-
-  // Remove address validation from validate()
-  const validate = async () => {
+  const validate = () => {
     const newErrors: any = {};
     if (!form.name.trim()) newErrors.name = "Name is required.";
     // Cost: allow empty, 'free', or 'none' (case-insensitive) as null
@@ -146,70 +109,25 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
     if (!form.images || form.images.length === 0) {
       newErrors.images = "Please add at least one image.";
     }
-    // Address validation: only validate if changed from initialData
-    let addressValid = true;
-    let skipAddressValidation = false;
-    const formLat = form.latitude != null ? Number(form.latitude) : null;
-    const formLon = form.longitude != null ? Number(form.longitude) : null;
-    const initialLat =
-      initialData && (initialData.latitude != null ? Number(initialData.latitude) : initialData.lat != null ? Number(initialData.lat) : null);
-    const initialLon =
-      initialData && (initialData.longitude != null ? Number(initialData.longitude) : initialData.lon != null ? Number(initialData.lon) : null);
-    // Always require non-empty address, lat, lon
-    if (!form.address || !form.address.trim() || formLat == null || formLon == null) {
-      addressValid = false;
-      skipAddressValidation = false;
-    } else if (initialData && form.address === initialData.address && formLat === initialLat && formLon === initialLon) {
-      // Unchanged from DB, always valid, skip GIS validation
-      skipAddressValidation = true;
-      addressValid = true;
-    } else if (initialData && (form.address !== initialData.address || formLat !== initialLat || formLon !== initialLon)) {
-      // Only allow submit if GIS validation passes
-      if (!addressValidated) {
-        addressValid = false;
-        newErrors.address = "Please verify the address.";
-      } else {
-        addressValid = true;
-      }
-    }
-    if (!skipAddressValidation && (!form.address || !form.address.trim() || formLat == null || formLon == null)) {
+    // Address validation logic:
+    // If editing (focused), require addressSelected (user must select from ArcGIS)
+    // If not editing, just require address, latitude, longitude (pre-filled is valid)
+    if (!form.address || !form.address.trim() || form.latitude == null || form.longitude == null || (addressFocused && !addressSelected)) {
       newErrors.address = "Please select a valid address.";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // Add a function to trigger GIS validation and set addressValidated
-  const handleAddressSelect = async (item: any) => {
-    setForm((prev) => ({
-      ...prev,
-      address: item.address,
-      latitude: item.location?.y || null,
-      longitude: item.location?.x || null,
-    }));
-    // Validate with GIS immediately
-    const valid = await validateAddressWithGIS(item.address, item.location?.y || null, item.location?.x || null);
-    setAddressValidated(valid);
-    if (!valid) {
-      setErrors((prev) => ({ ...prev, address: "Please select a valid address." }));
-    } else {
-      setErrors((prev) => {
-        const { address, ...rest } = prev;
-        return rest;
-      });
-    }
-  };
-
   const handleSubmit = async () => {
-    console.log("[DEBUG] handleSubmit: form.latitude =", form.latitude, "form.longitude =", form.longitude);
-    const valid = await validate();
-    if (!valid) return;
+    if (!validate()) return;
     // Normalize cost
     let cost = form.cost;
     if (form.has_cost && (/^(free|none)$/i.test(cost.trim()) || cost.trim() === "")) cost = "";
     await onSubmit({ ...form, cost });
   };
 
+  // Image picker logic
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -217,10 +135,8 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
       aspect: [4, 3],
       quality: 1,
     });
-
     if (!result.canceled) {
       const uri = result.assets[0].uri;
-      console.log("[EditActivity] Selected image URI");
       setForm((prev) => ({
         ...prev,
         images: [...prev.images, uri],
@@ -228,6 +144,7 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
     }
   };
 
+  // Toggle availability for a day
   const toggleAvailability = (day: keyof typeof form) => {
     setForm((prev) => ({
       ...prev,
@@ -235,6 +152,7 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
     }));
   };
 
+  // Remove an image from the form
   const handleRemoveImage = (index: number) => {
     setForm((prev) => ({
       ...prev,
@@ -242,17 +160,18 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
     }));
   };
 
+  // Show/hide remove buttons for images
   const handleLongPressImage = () => {
     setShowRemoveButtons((prev) => !prev);
   };
 
+  // Hide remove buttons when tapping outside
   const handleTapOutsideScrollView = () => {
     setShowRemoveButtons(false);
   };
 
-  // Helper for cost validation
+  // Helpers for cost and URL validation
   const isCostValid = !form.cost || /^(free|none)$/i.test(form.cost.trim()) || !isNaN(Number(form.cost));
-  // Helper for URL validation
   const isUrlValid =
     !form.url ||
     (() => {
@@ -272,12 +191,10 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
       isUrlValid &&
       form.images &&
       form.images.length > 0 &&
-      // Address must be GIS validated if changed
-      (addressValidated ||
-        (initialData &&
-          form.address === initialData.address &&
-          form.latitude === (initialData.latitude ?? initialData.lat) &&
-          form.longitude === (initialData.longitude ?? initialData.lon)))
+      form.address &&
+      form.address.trim() &&
+      form.latitude != null &&
+      form.longitude != null
   );
 
   // Compose form fields as items for FlatList
@@ -301,18 +218,25 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
         <View style={{ marginBottom: 10 }}>
           <ArcGISAddressSearch
             value={form.address}
-            onChangeText={(text: string) => {
+            // Only show green border if user has selected an address in this session
+            selected={addressSelected}
+            error={!!errors.address}
+            onSelect={(item) => {
               setForm((prev) => ({
                 ...prev,
-                address: text,
-                latitude: null,
-                longitude: null,
+                address: item.address,
+                latitude: item.location?.y || null,
+                longitude: item.location?.x || null,
               }));
-              setAddressValidated(false);
+              setAddressSelected(true); // Only set to true when user selects
+              if (addressFocused) validate();
             }}
-            onSelect={handleAddressSelect}
+            onFocus={() => setAddressFocused(true)}
+            onBlur={() => {
+              setAddressFocused(false);
+              validate();
+            }}
           />
-          {errors.address && <Text style={{ color: "#FF3B30", marginTop: 4, marginLeft: 5, fontSize: 13 }}>{errors.address}</Text>}
         </View>
       ),
     },
@@ -425,6 +349,7 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
     },
   ];
 
+  // Render the form as a FlatList of fields
   return (
     <FlatList
       data={formItems}

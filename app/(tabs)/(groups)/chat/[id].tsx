@@ -1,3 +1,11 @@
+// -----------------------------------------------------------------------------
+// chat/[id].tsx - Chat screen for group or direct messages
+// -----------------------------------------------------------------------------
+// This file displays a chat interface for a group or direct chat. It fetches
+// messages, displays them in a list, and allows the user to send new messages.
+// The chat header is set dynamically based on the chat type and participants.
+// -----------------------------------------------------------------------------
+
 import React, { useEffect, useState } from "react";
 import { View, Text, SafeAreaView, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Image } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -10,11 +18,13 @@ export default function ChatScreen() {
   const colorScheme = useColorScheme();
   const { id, activityName, chatPartner: chatPartnerParam } = useLocalSearchParams(); // Only get chat id from params
   const { userId } = useAuth(); // Use userId from AuthContext
+  // State for chat messages and input
   const [messages, setMessages] = useState<any[]>([]); // Fix type to any[]
   const [newMessage, setNewMessage] = useState("");
   const [chatPartner, setChatPartner] = useState<string>("");
   const router = useRouter();
 
+  // Fetch messages and set chat header on mount
   useEffect(() => {
     const loadMessages = async () => {
       const data = await fetchChatMessages(id as string);
@@ -34,6 +44,7 @@ export default function ChatScreen() {
     loadMessages();
   }, [id, userId, activityName, chatPartnerParam]); // Use userId as dependency
 
+  // Handle sending a new message
   const handleSendMessage = async () => {
     if (newMessage.trim() === "") return;
 
@@ -44,6 +55,7 @@ export default function ChatScreen() {
     }
   };
 
+  // Render each message in the chat
   const renderMessage = ({ item }: any) => {
     const isUser = item.user_id === parseInt(userId as string); // Use userId from AuthContext
     return <ChatMessage item={item} isUser={isUser} />;
@@ -68,6 +80,7 @@ export default function ChatScreen() {
           borderTopColor: "#ccc",
         }}
       >
+        {/* Message input field */}
         <TextInput
           value={newMessage}
           onChangeText={setNewMessage}
@@ -83,6 +96,7 @@ export default function ChatScreen() {
             backgroundColor: colorScheme === "dark" ? "#1e1e1e" : "white",
           }}
         />
+        {/* Send button */}
         <TouchableOpacity
           onPress={handleSendMessage}
           style={{

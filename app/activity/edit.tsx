@@ -1,3 +1,11 @@
+// -----------------------------------------------------------------------------
+// edit.tsx - Screen for editing or deleting an existing activity
+// -----------------------------------------------------------------------------
+// This file provides the UI and logic for editing or deleting an activity.
+// It uses the ActivityForm component, handles form submission, and displays
+// overlays for processing and deleting. Only changed fields are sent to the backend.
+// -----------------------------------------------------------------------------
+
 import React, { useState } from "react";
 import { API_URL } from "@/api/config";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -16,6 +24,7 @@ export default function EditActivityScreen() {
   // Type-safe access to route params
   const activity = route.params && typeof route.params === "object" && "activity" in route.params ? JSON.parse(route.params.activity as string) : {};
 
+  // Handle form submission for editing an activity
   const handleEdit = async (form: {
     name: string;
     has_cost: boolean;
@@ -31,8 +40,8 @@ export default function EditActivityScreen() {
     available_fri: boolean;
     available_sat: boolean;
     address: string;
-    latitude?: number;
-    longitude?: number;
+    latitude: number;
+    longitude: number;
   }) => {
     try {
       setProcessing(true);
@@ -54,8 +63,8 @@ export default function EditActivityScreen() {
       formData.append("user_id", userId ? String(userId) : "");
       // Only append address/lat/lon if changed
       if (form.address !== activity.address) formData.append("address", form.address);
-      if (form.latitude !== activity.latitude) formData.append("lat", String(form.latitude ?? ""));
-      if (form.longitude !== activity.longitude) formData.append("lon", String(form.longitude ?? ""));
+      if (form.latitude !== activity.latitude) formData.append("lat", String(form.latitude));
+      if (form.longitude !== activity.longitude) formData.append("lon", String(form.longitude));
       // Handle images: only send new images as files, keep existing URLs as-is
       if (form.images && Array.isArray(form.images)) {
         form.images.forEach((img) => {
@@ -95,6 +104,7 @@ export default function EditActivityScreen() {
     }
   };
 
+  // Handle deleting an activity
   const handleDelete = async () => {
     Alert.alert("Delete Activity", "Are you sure you want to delete this activity? This action cannot be undone.", [
       { text: "Cancel", style: "cancel" },
@@ -124,6 +134,7 @@ export default function EditActivityScreen() {
     ]);
   };
 
+  // Parse activity fields for ActivityForm
   const parsedActivity = {
     ...activity,
     available_sun: activity.available_sun === "true" || activity.available_sun === true || !!activity.available_sun,
@@ -138,6 +149,7 @@ export default function EditActivityScreen() {
 
   return (
     <View style={{ flex: 1 }}>
+      {/* Show loading overlay while processing or deleting */}
       {(processing || deleting) && (
         <View
           style={{
@@ -156,7 +168,9 @@ export default function EditActivityScreen() {
           <Text style={{ fontSize: 18, fontWeight: "bold", marginTop: 16 }}>{deleting ? "Deleting Activity..." : "Updating Activity..."}</Text>
         </View>
       )}
+      {/* Activity edit form */}
       <ActivityForm initialData={parsedActivity} onSubmit={handleEdit} />
+      {/* Delete button */}
       <View style={{ paddingHorizontal: 20, marginBottom: 24 }}>
         <CustomButton title="Delete Activity" onPress={handleDelete} color="#B00020" />
       </View>

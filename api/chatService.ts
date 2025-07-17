@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------------
+// chatService.ts - API calls for chat messaging
+// -----------------------------------------------------------------------------
+// Provides functions to fetch chat messages and send new messages via backend API.
+// Used by chat and messaging screens.
+// -----------------------------------------------------------------------------
+
 import { API_URL } from "./config";
 
 export const fetchChatMessages = async (chatId: string) => {

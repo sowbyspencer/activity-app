@@ -1,3 +1,11 @@
+// -----------------------------------------------------------------------------
+// groups.tsx - Groups screen for displaying user's matched activity groups
+// -----------------------------------------------------------------------------
+// This file displays a list of activity groups the user is matched with. Users
+// can tap to view group details or long-press to leave/unlike an activity.
+// Data is fetched from the backend and refreshed on focus or after leaving a group.
+// -----------------------------------------------------------------------------
+
 import React, { useEffect, useState } from "react";
 import { View, Text, SafeAreaView, FlatList, TouchableOpacity, Image, Alert } from "react-native";
 import { useColorScheme } from "@/hooks/useColorScheme";
@@ -13,6 +21,7 @@ export default function GroupsScreen() {
   const { userId } = useAuth(); // Use userId from AuthContext
   const [groups, setGroups] = useState([]);
 
+  // Fetch groups when screen is focused or userId changes
   useFocusEffect(
     React.useCallback(() => {
       const fetchGroups = async () => {
@@ -23,6 +32,7 @@ export default function GroupsScreen() {
     }, [userId])
   );
 
+  // Handle leaving a group (unlike activity)
   const handleLeaveGroup = (activityId: number) => {
     Alert.alert("Leave Activity", "Are you sure you want to leave/unlike this activity?", [
       { text: "Cancel", style: "cancel" },
@@ -31,7 +41,7 @@ export default function GroupsScreen() {
         style: "destructive",
         onPress: async () => {
           await leaveActivity(Number(userId), activityId);
-          // Refresh groups
+          // Refresh groups after leaving
           const data = await fetchMatchedGroups(Number(userId));
           setGroups(data || []);
         },

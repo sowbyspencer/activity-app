@@ -1,3 +1,11 @@
+// -----------------------------------------------------------------------------
+// activityGroup/[id].tsx - Activity group details screen
+// -----------------------------------------------------------------------------
+// This file displays details for a specific activity group, including the group
+// image, name, and a list of members. Users can tap to view the activity info
+// or start a group/direct chat with members. Data is fetched and refreshed on focus.
+// -----------------------------------------------------------------------------
+
 import React, { useEffect, useState } from "react";
 import { View, Text, SafeAreaView, FlatList, TouchableOpacity, Image } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -11,6 +19,7 @@ export default function ActivityGroupScreen() {
   const { id } = useLocalSearchParams(); // Only get activity group id from params
   const { userId } = useAuth(); // Get userId from AuthContext
   const router = useRouter();
+  // State for activity group details
   const [activity, setActivity] = useState({
     activity_id: "",
     activity_name: "",
@@ -20,6 +29,7 @@ export default function ActivityGroupScreen() {
     members: [],
   });
 
+  // Fetch activity group details on mount
   useEffect(() => {
     console.log("ActivityGroupScreen userId:", userId); // Log the userId being used
     const loadActivityGroup = async () => {

@@ -1,3 +1,12 @@
+// -----------------------------------------------------------------------------
+// (tabs)/index.tsx - Main activity swipe screen (Home tab)
+// -----------------------------------------------------------------------------
+// This file implements the core swipe/tap interface for browsing activities.
+// It handles fetching activities, swipe/tap gestures, and UI states for loading,
+// errors, and empty results. Includes helpers for merging activities, resetting
+// declined activities, and managing location permissions.
+// -----------------------------------------------------------------------------
+
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import { View, Text, Image, Animated, PanResponder, Dimensions, ActivityIndicator, TouchableOpacity, Alert } from "react-native";
 import { useColorScheme } from "@/hooks/useColorScheme";
@@ -13,6 +22,7 @@ import { useRouter } from "expo-router";
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 
+// Activity interface for type safety
 interface Activity {
   id: number;
   name: string;
@@ -29,17 +39,6 @@ interface Activity {
   available_sat: boolean;
   url: string;
   images: string[];
-}
-
-// Helper to merge new activities, avoiding duplicates
-function mergeUniqueActivities(prev: Activity[], newData: Activity[]): Activity[] {
-  if (!Array.isArray(newData)) {
-    console.error("mergeUniqueActivities: newData is not an array", newData);
-    return prev;
-  }
-  const existingIds = new Set(prev.map((a) => a.id));
-  const uniqueNew = newData.filter((a) => !existingIds.has(a.id));
-  return [...prev, ...uniqueNew];
 }
 
 // Helper to wrap async actions with loading state
@@ -63,10 +62,13 @@ async function resetAndFetchActivities(
 }
 
 export default function ActivitySwiper() {
+  // Theme and navigation hooks
   const colorScheme = useColorScheme();
   const navigation = useNavigation();
+  // Auth and radius context
   const { userId } = useAuth();
   const { radius, setRadius } = useRadius();
+  // State for activities, images, loading, and location
   const [activities, setActivities] = useState<Activity[]>([]);
   const [currentActivity, setCurrentActivity] = useState(0);
   const [currentImage, setCurrentImage] = useState(0);
@@ -81,7 +83,6 @@ export default function ActivitySwiper() {
   const translateY = useRef(new Animated.Value(0)).current;
   const skipNextFocusRefresh = useRef(false);
 
-  // Fetch data
   // Fetch activities from the server and add to the bottom of the stack
   // loc: optional latitude/longitude to use for the fetch
   const fetchAndSetActivities = useCallback(

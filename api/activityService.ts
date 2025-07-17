@@ -1,8 +1,14 @@
+// -----------------------------------------------------------------------------
+// activityService.ts - API calls for activities (fetch, swipe, create, edit)
+// -----------------------------------------------------------------------------
+// Provides functions to fetch activities (with location filtering), swipe,
+// create, and edit activities via backend API. Used by main activity screens.
+// -----------------------------------------------------------------------------
+
 import { API_URL } from "./config";
 
-// fetchActivities now requires device lat/lon and user-selected radius for location-based filtering.
-// The legacy 'location' string field is deprecated and will be removed from requests and responses.
-
+// fetchActivities: Fetches activities for a user, filtered by location and radius
+// Throws if userId or location is missing
 export const fetchActivities = async (userId: string | number,
   location: { coords: { latitude: number; longitude: number } },
   radius?: number) => {
@@ -31,6 +37,7 @@ export const fetchActivities = async (userId: string | number,
   }
 };
 
+// swipeActivity: Records a swipe (like/dislike) for a user on an activity
 export const swipeActivity = async (
   userId: number,
   activityId: number,
@@ -49,6 +56,7 @@ export const swipeActivity = async (
   }
 };
 
+// leaveActivity: Records that a user has left (discontinued) an activity
 export const leaveActivity = async (
   userId: number,
   activityId: number
@@ -66,6 +74,7 @@ export const leaveActivity = async (
   }
 };
 
+// resetDeclinedActivities: Resets the swipes for declined activities for a user
 export const resetDeclinedActivities = async (userId: number) => {
   try {
     const response = await fetch(`${API_URL}/activities/reset-swipes`, {

@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------------
+// userService.ts - API calls for user profile management
+// -----------------------------------------------------------------------------
+// Provides functions to fetch and update user profiles via backend API.
+// Used by profile and settings screens.
+// -----------------------------------------------------------------------------
+
 import { API_URL } from "./config";
 import { Platform } from "react-native";
 

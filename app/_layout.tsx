@@ -1,3 +1,12 @@
+// -----------------------------------------------------------------------------
+// _layout.tsx - Root layout for the app, sets up providers and navigation stack
+// -----------------------------------------------------------------------------
+// This file configures the main app layout, including theme, authentication,
+// location, and radius providers. It also sets up the navigation stack and
+// handles splash screen and font loading. All main screens and their headers
+// are registered here.
+// -----------------------------------------------------------------------------
+
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ThemeProvider, DarkTheme, DefaultTheme } from "@react-navigation/native";
 import { useFonts } from "expo-font";
@@ -15,28 +24,39 @@ import { RadiusProvider } from "@/context/RadiusContext";
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  // Get current color scheme (light/dark)
   const colorScheme = useColorScheme();
+  // Get current user ID from auth context
   const { userId } = useAuth();
+  // Load custom fonts
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
 
+  // Hide splash screen when fonts are loaded
   useEffect(() => {
     if (loaded) {
       SplashScreen.hideAsync();
     }
   }, [loaded]);
 
+  // Don't render app until fonts are loaded
   if (!loaded) {
     return null;
   }
 
   return (
+    // GestureHandlerRootView is required for gesture support
     <GestureHandlerRootView style={{ flex: 1 }}>
+      {/* Provide authentication context to all children */}
       <AuthProvider>
+        {/* Provide location context to all children */}
         <LocationProvider>
+          {/* Provide radius context to all children */}
           <RadiusProvider>
+            {/* Set theme based on color scheme */}
             <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+              {/* Set status bar style and color */}
               <StatusBar
                 backgroundColor={colorScheme === "dark" ? "black" : "transparent"}
                 barStyle={colorScheme === "dark" ? "light-content" : "dark-content"}
@@ -62,6 +82,7 @@ export default function RootLayout() {
                 <Stack.Screen
                   name="activityInfo"
                   options={({ route }) => {
+                    // Set header title to activity name if available
                     const title = (route.params && (route.params as any).activity && (route.params as any).activity.name) || "Activity Info";
                     return {
                       title,

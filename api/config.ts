@@ -1,4 +1,10 @@
-// config.ts
+// -----------------------------------------------------------------------------
+// config.ts - API base URL configuration
+// -----------------------------------------------------------------------------
+// Exports the API_URL constant, switching between local and live server.
+// Used by all API service modules.
+// -----------------------------------------------------------------------------
+
 const USE_LIVE_SERVER = false; // set to true for live server
 
 const LOCAL_DEV_IP = "192.168.50.144:5000";

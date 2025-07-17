@@ -1,3 +1,11 @@
+// -----------------------------------------------------------------------------
+// signup.tsx - Signup screen for new user registration
+// -----------------------------------------------------------------------------
+// This file provides the UI and logic for user signup. It handles form input,
+// validation, image picking, and submission to the backend. On successful signup,
+// the user is redirected to the login screen.
+// -----------------------------------------------------------------------------
+
 import React, { useState, useRef } from "react";
 import { View, Text, Alert, Image, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator } from "react-native";
 import CustomInput from "@/components/ui/CustomInput";
@@ -36,6 +44,7 @@ export default function SignupScreen() {
   const firstNameRef = useRef(null);
   const lastNameRef = useRef(null);
 
+  // Handle picking a profile image
   const handlePickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -49,6 +58,7 @@ export default function SignupScreen() {
     }
   };
 
+  // Handle signup form submission
   const handleSignup = async () => {
     setEmailError("");
     setPasswordError("");
@@ -143,6 +153,7 @@ export default function SignupScreen() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? 40 : 0}
     >
+      {/* Show loading overlay while processing */}
       {processing && (
         <View
           style={{
@@ -183,6 +194,7 @@ export default function SignupScreen() {
           Sign Up
         </Text>
         <View style={{ width: 300 }}>
+          {/* Email input */}
           <CustomInput
             ref={emailRef}
             placeholder="Email"
@@ -194,6 +206,7 @@ export default function SignupScreen() {
             returnKeyType="next"
             onSubmitEditing={() => passwordRef.current && passwordRef.current.focus()}
           />
+          {/* Password input */}
           <CustomPasswordInput
             ref={passwordRef}
             placeholder="Password"
@@ -204,6 +217,7 @@ export default function SignupScreen() {
             returnKeyType="next"
             onSubmitEditing={() => confirmPasswordRef.current && confirmPasswordRef.current.focus()}
           />
+          {/* Confirm password input */}
           <CustomPasswordInput
             ref={confirmPasswordRef}
             placeholder="Confirm Password"
@@ -214,6 +228,7 @@ export default function SignupScreen() {
             returnKeyType="next"
             onSubmitEditing={() => firstNameRef.current && firstNameRef.current.focus()}
           />
+          {/* First name input */}
           <CustomInput
             ref={firstNameRef}
             placeholder="First Name"
@@ -223,6 +238,7 @@ export default function SignupScreen() {
             returnKeyType="next"
             onSubmitEditing={() => lastNameRef.current && lastNameRef.current.focus()}
           />
+          {/* Last name input */}
           <CustomInput
             ref={lastNameRef}
             placeholder="Last Name"
@@ -241,6 +257,7 @@ export default function SignupScreen() {
             </View>
           ) : null}
           {profileImageError ? <Text style={{ color: "#B00020", marginBottom: 10 }}>{profileImageError}</Text> : null}
+          {/* Sign up button */}
           <CustomButton title="Sign Up" onPress={handleSignup} color="#34C759" disabled={!isFormComplete} opacity={isFormComplete ? 1 : 0.25} />
         </View>
       </ScrollView>

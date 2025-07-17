@@ -1,3 +1,11 @@
+// -----------------------------------------------------------------------------
+// create.tsx - Screen for creating a new activity
+// -----------------------------------------------------------------------------
+// This file provides the UI and logic for users to create a new activity.
+// It uses the ActivityForm component, handles form submission, and displays
+// a loading overlay while processing. Images and form data are sent to the backend.
+// -----------------------------------------------------------------------------
+
 import React, { useState } from "react";
 import { API_URL } from "@/api/config";
 import { useAuth } from "@/context/AuthContext";
@@ -10,6 +18,7 @@ export default function CreateActivityScreen() {
   const { userId } = useAuth();
   const [processing, setProcessing] = useState(false);
 
+  // Handle form submission for creating a new activity
   const handleCreate = async (form: {
     name: string;
     has_cost: boolean;
@@ -52,13 +61,11 @@ export default function CreateActivityScreen() {
       formData.append("available_thu", String(form.available_thu));
       formData.append("available_fri", String(form.available_fri));
       formData.append("available_sat", String(form.available_sat));
-
-      // Append address if present
       formData.append("address", form.address);
-      // Append lat/lon if present
-      formData.append("lat", String(form.latitude ?? ""));
-      formData.append("lon", String(form.longitude ?? ""));
+      formData.append("lat", String(form.latitude));
+      formData.append("lon", String(form.longitude));
 
+      // Append images to FormData
       form.images.forEach((imageUri: string, index: number) => {
         const imageFile = {
           uri: imageUri,
@@ -66,8 +73,6 @@ export default function CreateActivityScreen() {
           type: "image/jpeg",
         };
         console.log(`[FRONTEND] Adding image to FormData:`, imageFile);
-
-        // Correctly append the image file to FormData
         formData.append("images", {
           uri: imageFile.uri,
           type: imageFile.type,
@@ -99,6 +104,7 @@ export default function CreateActivityScreen() {
 
   return (
     <>
+      {/* Show loading overlay while processing */}
       {processing && (
         <View
           style={{
@@ -125,6 +131,7 @@ export default function CreateActivityScreen() {
           </Text>
         </View>
       )}
+      {/* Activity creation form */}
       <ActivityForm onSubmit={handleCreate} />
     </>
   );

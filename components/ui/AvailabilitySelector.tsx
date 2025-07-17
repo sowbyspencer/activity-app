@@ -1,8 +1,32 @@
+// -----------------------------------------------------------------------------
+// AvailabilitySelector.tsx - Day-of-week selector for activity availability
+// -----------------------------------------------------------------------------
+// Provides a row of toggle buttons for each day of the week, allowing users
+// to select which days an activity is available. Used in ActivityForm.
+//
+// Props:
+//   - available_sun ... available_sat: booleans for each day
+//   - onToggle: callback(dayKey) when a day is toggled
+// -----------------------------------------------------------------------------
+
 import React, { useEffect } from "react";
 import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { useThemeColor } from "@/hooks/useThemeColor";
 
+// Explicitly type the props for better type safety
+interface AvailabilitySelectorProps {
+  available_sun: boolean;
+  available_mon: boolean;
+  available_tue: boolean;
+  available_wed: boolean;
+  available_thu: boolean;
+  available_fri: boolean;
+  available_sat: boolean;
+  onToggle: (dayKey: string) => void;
+}
+
+// AvailabilitySelector: Row of toggle buttons for each day of the week
 export default function AvailabilitySelector({
   available_sun,
   available_mon,
@@ -12,9 +36,10 @@ export default function AvailabilitySelector({
   available_fri,
   available_sat,
   onToggle,
-}) {
+}: AvailabilitySelectorProps) {
   const colorScheme = useColorScheme();
 
+  // List of days and their current values
   const days = [
     { key: "sun", value: available_sun },
     { key: "mon", value: available_mon },
@@ -30,30 +55,7 @@ export default function AvailabilitySelector({
   const iconColor = useThemeColor({}, "icon");
   const textColor = useThemeColor({}, "text");
 
-  // useEffect(() => {
-  //   console.log("AvailabilitySelector initialized with:", {
-  //     available_sun,
-  //     available_mon,
-  //     available_tue,
-  //     available_wed,
-  //     available_thu,
-  //     available_fri,
-  //     available_sat,
-  //   });
-  // }, []);
-
-  // useEffect(() => {
-  //   console.log("Day toggled, updated values:", {
-  //     available_sun,
-  //     available_mon,
-  //     available_tue,
-  //     available_wed,
-  //     available_thu,
-  //     available_fri,
-  //     available_sat,
-  //   });
-  // }, [available_sun, available_mon, available_tue, available_wed, available_thu, available_fri, available_sat]);
-
+  // Render a button for each day, blue if selected, gray if not
   return (
     <View style={styles.container}>
       {days.map(({ key, value }) => (
@@ -68,13 +70,7 @@ export default function AvailabilitySelector({
             },
           ]}
         >
-          <Text
-            style={{
-              color: value ? "white" : textColor, // White text for true, text color for false
-            }}
-          >
-            {key.toUpperCase()}
-          </Text>
+          <Text style={{ color: value ? "white" : textColor, fontWeight: value ? "bold" : "normal" }}>{key.toUpperCase()}</Text>
         </TouchableOpacity>
       ))}
     </View>

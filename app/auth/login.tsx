@@ -1,3 +1,11 @@
+// -----------------------------------------------------------------------------
+// login.tsx - Login screen for user authentication
+// -----------------------------------------------------------------------------
+// This file provides the UI and logic for user login. It handles form input,
+// password visibility, and navigation to the signup screen. On successful login,
+// the user is redirected to the main app tabs.
+// -----------------------------------------------------------------------------
+
 import React, { useState, useEffect } from "react";
 import { View, Text, Alert, BackHandler, Platform } from "react-native";
 import CustomInput from "@/components/ui/CustomInput";
@@ -20,6 +28,7 @@ export default function LoginScreen() {
   });
   const [showPassword, setShowPassword] = useState(false);
 
+  // Handle Android back button to exit app on login screen
   useFocusEffect(
     React.useCallback(() => {
       if (Platform.OS === "android") {
@@ -33,6 +42,7 @@ export default function LoginScreen() {
     }, [])
   );
 
+  // Handle login form submission
   const handleLogin = async () => {
     try {
       const response = await fetch(`${API_URL}/auth/login`, {
@@ -75,6 +85,7 @@ export default function LoginScreen() {
         Login
       </Text>
       <View style={{ width: 300 }}>
+        {/* Email input */}
         <CustomInput
           placeholder="Email"
           value={form.email}
@@ -82,6 +93,7 @@ export default function LoginScreen() {
           keyboardType="email-address"
           autoCapitalize="none"
         />
+        {/* Password input */}
         <CustomPasswordInput
           placeholder="Password"
           value={form.password}
@@ -89,7 +101,9 @@ export default function LoginScreen() {
           autoCapitalize="none"
           style={{ marginBottom: 20 }}
         />
+        {/* Login button */}
         <CustomButton title="Log In" onPress={handleLogin} color="#007AFF" />
+        {/* Navigate to signup */}
         <CustomButton title="Don't have an account? Sign Up" onPress={() => router.push("/auth/signup")} color="#34C759" />
       </View>
     </View>

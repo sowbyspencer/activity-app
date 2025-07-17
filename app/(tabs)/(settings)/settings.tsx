@@ -1,3 +1,12 @@
+// -----------------------------------------------------------------------------
+// settings.tsx - Settings screen for user profile, activities, and preferences
+// -----------------------------------------------------------------------------
+// This file provides the settings UI, including navigation to profile and
+// activities, refreshing declined activities, and adjusting the activity search
+// radius. The radius input is validated and synced with context. All options
+// are presented in a FlatList for easy extension.
+// -----------------------------------------------------------------------------
+
 import React, { useEffect } from "react";
 import { View, Text, SafeAreaView, FlatList, TouchableOpacity, Alert, TextInput } from "react-native";
 import { useColorScheme } from "@/hooks/useColorScheme";
@@ -11,10 +20,12 @@ export default function SettingsScreen() {
   const { radius, setRadius } = useRadius();
   const [radiusInput, setRadiusInput] = React.useState(radius.toString());
 
+  // Sync input field with context radius
   useEffect(() => {
     setRadiusInput(radius.toString());
   }, [radius]);
 
+  // Handle refreshing declined activities
   const handleRefreshDeclined = async () => {
     Alert.alert("Refresh Declined Activities", "Do you want to refresh Declined activities?", [
       { text: "Cancel", style: "cancel" },
@@ -34,6 +45,7 @@ export default function SettingsScreen() {
     ]);
   };
 
+  // Handle changes to the radius input
   const handleRadiusChange = (value: string) => {
     // Allow empty string for editing
     setRadiusInput(value);
@@ -49,6 +61,7 @@ export default function SettingsScreen() {
     }
   };
 
+  // Handle blur event for radius input
   const handleRadiusBlur = () => {
     // If input is empty, set radius to 1
     if (radiusInput === "") {
@@ -57,6 +70,7 @@ export default function SettingsScreen() {
     }
   };
 
+  // List of settings options, including custom render for radius
   const options = [
     {
       id: "1",
@@ -71,6 +85,7 @@ export default function SettingsScreen() {
       render: () => (
         <View style={{ paddingVertical: 10 }}>
           <Text style={{ fontSize: 16, marginBottom: 8, color: colorScheme === "dark" ? "white" : "black" }}>Activity Search Radius (km):</Text>
+          {/* Radius input field */}
           <TextInput
             style={{
               borderWidth: 1,

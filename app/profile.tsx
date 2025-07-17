@@ -1,3 +1,30 @@
+/**
+ * ProfileScreen
+ *
+ * This screen allows users to view and edit their profile information, including name, email, and profile image.
+ * Users can also change their password and delete their account from this screen.
+ *
+ * Features:
+ *   - Fetches and displays user profile data
+ *   - Allows editing of profile fields and profile image
+ *   - Handles password change with validation
+ *   - Provides account deletion with confirmation modals
+ *   - Uses custom UI components for consistent styling
+ *
+ * State Variables:
+ *   - form: Stores user profile fields (firstName, lastName, email, profileImage)
+ *   - isEditing: Toggles edit mode
+ *   - showPasswordFields: Toggles password change fields
+ *   - showDeleteModal: Controls account deletion modal
+ *   - updating: Indicates loading state for updates
+ *   - Various error states for form validation
+ *
+ * Hooks:
+ *   - useAuth: Provides userId and setUserId for authentication context
+ *   - useRouter: For navigation
+ *   - useEffect: Loads user profile on mount or when userId changes
+ */
+
 import React, { useState, useEffect } from "react";
 import { Button, View, Alert, Modal, Text, TextInput, StyleSheet, ActivityIndicator } from "react-native"; // Add Modal, Text, TextInput, StyleSheet
 import { fetchUserProfile, updateUserProfile } from "@/api/userService";
@@ -13,18 +40,23 @@ import CustomPasswordInput from "@/components/ui/CustomPasswordInput";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function ProfileScreen() {
+  // Get userId and setUserId from authentication context
   const { userId, setUserId } = useAuth();
   const router = useRouter();
+  // State for profile form fields
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
     email: "",
     profileImage: "https://via.placeholder.com/150",
   });
+  // State for toggling edit mode
   const [isEditing, setIsEditing] = useState(false);
+  // State for form validation errors
   const [firstNameError, setFirstNameError] = useState("");
   const [lastNameError, setLastNameError] = useState("");
   const [emailError, setEmailError] = useState("");
+  // State for password change fields
   const [showPasswordFields, setShowPasswordFields] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -32,17 +64,21 @@ export default function ProfileScreen() {
   const [currentPasswordError, setCurrentPasswordError] = useState("");
   const [newPasswordError, setNewPasswordError] = useState("");
   const [confirmNewPasswordError, setConfirmNewPasswordError] = useState("");
+  // State for account deletion modals and password
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletePassword, setDeletePassword] = useState("");
   const [deletePasswordError, setDeletePasswordError] = useState("");
   const [showFinalDeleteConfirm, setShowFinalDeleteConfirm] = useState(false);
+  // State for toggling password visibility
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
   const [showDeletePassword, setShowDeletePassword] = useState(false);
+  // State for loading indicator during updates
   const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
+    // Load user profile data when userId changes
     const loadUserProfile = async () => {
       if (!userId) return;
       const userProfile = await fetchUserProfile(Number(userId));

@@ -1,3 +1,11 @@
+// -----------------------------------------------------------------------------
+// myActivities.tsx - Screen for listing and managing user's created activities
+// -----------------------------------------------------------------------------
+// This file displays a list of activities created by the user. Users can swipe
+// to delete, tap to edit, or create a new activity. Activities are fetched from
+// the backend and displayed in a FlatList. SwipeableActivityItem is used for swipe actions.
+// -----------------------------------------------------------------------------
+
 import React, { useState, useRef } from "react";
 import { View, Text, FlatList, TouchableOpacity, Image, SafeAreaView, Alert } from "react-native";
 import { useColorScheme } from "@/hooks/useColorScheme";
@@ -7,6 +15,7 @@ import { API_URL } from "@/api/config";
 import { useFocusEffect } from "@react-navigation/native";
 import SwipeableActivityItem, { SwipeableActivityItemHandle } from "@/components/ui/SwipeableActivityItem";
 
+// Activity type definition
 type Activity = {
   id: number;
   name: string;
@@ -34,10 +43,10 @@ export default function MyActivitiesScreen() {
 
   // Track the currently open swipeable row
   const openRowRef = useRef<SwipeableActivityItemHandle | null>(null);
-
   // Store refs for each row by activity id
   const rowRefs = useRef<{ [key: number]: SwipeableActivityItemHandle | null }>({});
 
+  // Fetch user's created activities on focus
   useFocusEffect(
     React.useCallback(() => {
       const fetchActivities = async () => {
@@ -61,6 +70,7 @@ export default function MyActivitiesScreen() {
     }, [userId])
   );
 
+  // Handle deleting an activity
   const handleDelete = (activityId: number) => (closeSwipe?: () => void) => {
     Alert.alert("Delete Activity", "Are you sure you want to delete this activity? This action cannot be undone.", [
       { text: "Cancel", style: "cancel", onPress: () => closeSwipe && closeSwipe() },
@@ -84,8 +94,8 @@ export default function MyActivitiesScreen() {
     ]);
   };
 
+  // Ensure only one swipeable row is open at a time
   const handleRowOpen = (id: number) => {
-    // Close any previously open row
     Object.entries(rowRefs.current).forEach(([key, ref]) => {
       if (Number(key) !== id && ref) {
         ref.close();
@@ -93,6 +103,7 @@ export default function MyActivitiesScreen() {
     });
   };
 
+  // Render each activity item in the list
   const renderActivityItem = ({ item }: { item: Activity }) => (
     <SwipeableActivityItem
       ref={(ref) => (rowRefs.current[item.id] = ref)}

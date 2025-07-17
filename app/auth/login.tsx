@@ -9,6 +9,7 @@ import { useRouter } from "expo-router";
 import { useAuth } from "@/context/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
+import Constants from "expo-constants";
 
 export default function LoginScreen() {
   const colorScheme = useColorScheme();
@@ -20,17 +21,20 @@ export default function LoginScreen() {
   });
   const [showPassword, setShowPassword] = useState(false);
 
+  // Log ArcGIS API Key for testing
+  const arcgisKey = process.env.ARC_GIS_API_KEY || Constants.expoConfig?.extra?.arcgisApiKey || "NOT FOUND";
+  useEffect(() => {
+    console.log("ArcGIS API Key:", arcgisKey);
+  }, []);
+
   useFocusEffect(
     React.useCallback(() => {
       if (Platform.OS === "android") {
-        const backHandler = BackHandler.addEventListener(
-          "hardwareBackPress",
-          () => {
-            // Exit the app if on the login screen
-            BackHandler.exitApp();
-            return true;
-          }
-        );
+        const backHandler = BackHandler.addEventListener("hardwareBackPress", () => {
+          // Exit the app if on the login screen
+          BackHandler.exitApp();
+          return true;
+        });
         return () => backHandler.remove();
       }
     }, [])
@@ -93,11 +97,7 @@ export default function LoginScreen() {
           style={{ marginBottom: 20 }}
         />
         <CustomButton title="Log In" onPress={handleLogin} color="#007AFF" />
-        <CustomButton
-          title="Don't have an account? Sign Up"
-          onPress={() => router.push("/auth/signup")}
-          color="#34C759"
-        />
+        <CustomButton title="Don't have an account? Sign Up" onPress={() => router.push("/auth/signup")} color="#34C759" />
       </View>
     </View>
   );

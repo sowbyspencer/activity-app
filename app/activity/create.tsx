@@ -4,13 +4,11 @@ import { useAuth } from "@/context/AuthContext";
 import { useNavigation } from "@react-navigation/native";
 import ActivityForm from "@/components/ActivityForm";
 import { View, Text, ActivityIndicator } from "react-native";
-import { useLocationContext } from "@/context/LocationContext";
 
 export default function CreateActivityScreen() {
   const navigation = useNavigation();
   const { userId } = useAuth();
   const [processing, setProcessing] = useState(false);
-  const { coords } = useLocationContext(); // Use shared location context
 
   const handleCreate = async (form: {
     name: string;
@@ -51,15 +49,6 @@ export default function CreateActivityScreen() {
       formData.append("available_thu", String(form.available_thu));
       formData.append("available_fri", String(form.available_fri));
       formData.append("available_sat", String(form.available_sat));
-
-      // Add latitude and longitude if available
-      console.log("[FRONTEND] Device coords:", coords);
-      if (coords && coords.latitude && coords.longitude) {
-        formData.append("lat", String(coords.latitude));
-        formData.append("lon", String(coords.longitude));
-      } else {
-        console.warn("[FRONTEND] No device coords available, lat/lon will be null");
-      }
 
       form.images.forEach((imageUri: string, index: number) => {
         const imageFile = {

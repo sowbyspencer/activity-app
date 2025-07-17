@@ -5,7 +5,6 @@ import ActivityForm from "@/components/ActivityForm";
 import { useAuth } from "@/context/AuthContext";
 import { Alert, View, Text, ActivityIndicator } from "react-native";
 import CustomButton from "@/components/ui/CustomButton";
-import { useLocationContext } from "@/context/LocationContext";
 
 export default function EditActivityScreen() {
   const navigation = useNavigation();
@@ -13,7 +12,7 @@ export default function EditActivityScreen() {
   const { userId } = useAuth();
   const [processing, setProcessing] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const { coords } = useLocationContext(); // Use shared location context
+  // Removed useLocationContext and device coords
   // Type-safe access to route params
   const activity = route.params && typeof route.params === "object" && "activity" in route.params ? JSON.parse(route.params.activity as string) : {};
 
@@ -31,6 +30,9 @@ export default function EditActivityScreen() {
     available_thu: boolean;
     available_fri: boolean;
     available_sat: boolean;
+    location?: string;
+    latitude?: number | null;
+    longitude?: number | null;
   }) => {
     try {
       setProcessing(true);
@@ -50,14 +52,10 @@ export default function EditActivityScreen() {
       if (form.available_fri !== activity.available_fri) formData.append("available_fri", form.available_fri ? "true" : "false");
       if (form.available_sat !== activity.available_sat) formData.append("available_sat", form.available_sat ? "true" : "false");
       formData.append("user_id", userId ? String(userId) : "");
-      // Add latitude and longitude if available
-      console.log("[FRONTEND] Device coords:", coords);
-      if (coords && coords.latitude && coords.longitude) {
-        formData.append("lat", String(coords.latitude));
-        formData.append("lon", String(coords.longitude));
-      } else {
-        console.warn("[FRONTEND] No device coords available, lat/lon will be null");
-      }
+      // Use only ArcGIS-selected location/lat/lon from form
+      if (form.location) formData.append("location", form.location);
+      if (form.latitude != null) formData.append("lat", String(form.latitude));
+      if (form.longitude != null) formData.append("lon", String(form.longitude));
       // Handle images: only send new images as files, keep existing URLs as-is
       if (form.images && Array.isArray(form.images)) {
         form.images.forEach((img) => {

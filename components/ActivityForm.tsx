@@ -35,6 +35,7 @@ type ErrorState = {
   url?: string;
   description?: string;
   images?: string;
+  location?: string;
 };
 
 export default function ActivityForm({ initialData, onSubmit }: ActivityFormProps) {
@@ -59,7 +60,6 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
 
   const [showRemoveButtons, setShowRemoveButtons] = useState(false);
   const [errors, setErrors] = useState<ErrorState>({});
-  const [addressDropdownOpen, setAddressDropdownOpen] = useState(false);
 
   // Refs for input focus
   const nameRef = useRef<any>(null);
@@ -87,6 +87,10 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
     if (!form.images || form.images.length === 0) {
       newErrors.images = "Please add at least one image.";
     }
+    // Require valid address/location
+    if (!form.location || !form.location.trim() || form.latitude == null || form.longitude == null) {
+      newErrors.location = "Please select a valid address.";
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -95,7 +99,7 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
     if (!validate()) return;
     // Normalize cost
     let cost = form.cost;
-    if (form.has_cost && (/^(free|none)$/i.test(cost.trim()) || cost.trim() === "")) cost = null;
+    if (form.has_cost && (/^(free|none)$/i.test(cost.trim()) || cost.trim() === "")) cost = "";
     await onSubmit({ ...form, cost });
   };
 
@@ -154,7 +158,11 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
         }
       })()) &&
     form.images &&
-    form.images.length > 0;
+    form.images.length > 0 &&
+    form.location &&
+    form.location.trim() &&
+    form.latitude != null &&
+    form.longitude != null;
 
   // Compose form fields as items for FlatList
   const formItems = [
@@ -295,6 +303,11 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
     {
       key: "imagesError",
       render: () => (errors.images ? <Text style={{ color: "#FF3B30", marginBottom: 10, marginLeft: 5, fontSize: 13 }}>{errors.images}</Text> : null),
+    },
+    {
+      key: "addressError",
+      render: () =>
+        errors.location ? <Text style={{ color: "#FF3B30", marginBottom: 10, marginLeft: 5, fontSize: 13 }}>{errors.location}</Text> : null,
     },
   ];
 

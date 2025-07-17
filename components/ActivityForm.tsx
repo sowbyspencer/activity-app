@@ -112,9 +112,26 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
     if (!form.images || form.images.length === 0) {
       newErrors.images = "Please add at least one image.";
     }
-    // Address validation: require GIS validation
-    const addressValid = await validateAddressWithGIS(form.address, form.latitude, form.longitude);
-    if (!form.address || !form.address.trim() || form.latitude == null || form.longitude == null || !addressValid) {
+    // Address validation: only validate if changed from initialData
+    let addressValid = true;
+    let skipAddressValidation = false;
+    const formLat = form.latitude != null ? Number(form.latitude) : null;
+    const formLon = form.longitude != null ? Number(form.longitude) : null;
+    const initialLat = initialData && initialData.latitude != null ? Number(initialData.latitude) : null;
+    const initialLon = initialData && initialData.longitude != null ? Number(initialData.longitude) : null;
+    if (initialData && form.address === initialData.address && formLat === initialLat && formLon === initialLon) {
+      // Unchanged from DB, always valid, skip all address/lat/lon checks
+      skipAddressValidation = true;
+      addressValid = true;
+    } else if (initialData && (form.address !== initialData.address || formLat !== initialLat || formLon !== initialLon)) {
+      // Only validate if all are present
+      if (form.address && form.address.trim() && formLat != null && formLon != null) {
+        addressValid = await validateAddressWithGIS(form.address, formLat, formLon);
+      } else {
+        addressValid = false;
+      }
+    }
+    if (!skipAddressValidation && (!form.address || !form.address.trim() || formLat == null || formLon == null || !addressValid)) {
       newErrors.address = "Please select a valid address (validated by GIS).";
     }
     setErrors(newErrors);

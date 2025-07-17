@@ -51,6 +51,7 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
 
   const [showRemoveButtons, setShowRemoveButtons] = useState(false);
   const [errors, setErrors] = useState({});
+  const [addressDropdownOpen, setAddressDropdownOpen] = useState(false);
 
   // Refs for input focus
   const nameRef = useRef(null);
@@ -148,119 +149,117 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
     form.images.length > 0;
 
   return (
-    <FormWrapper>
-      <CustomInput
-        ref={nameRef}
-        placeholder="Name"
-        value={form.name}
-        onChangeText={(text) => setForm({ ...form, name: text })}
-        error={errors.name}
-        returnKeyType="next"
-      />
-      {/* ArcGIS Address Search */}
-      <ArcGISAddressSearch
-        onSelect={(item) => {
-          setForm((prev) => ({
-            ...prev,
-            location: item.address,
-            latitude: item.location?.y || null,
-            longitude: item.location?.x || null,
-          }));
-        }}
-      />
-      {/* Show selected location if available */}
-      {form.location ? (
-        <View style={{ marginBottom: 8 }}>
-          <Text style={{ fontSize: 14, color: "#333" }}>Selected: {form.location}</Text>
-          {form.latitude && form.longitude && (
-            <Text style={{ fontSize: 12, color: "#888" }}>
-              Lat: {form.latitude}, Lon: {form.longitude}
-            </Text>
-          )}
-        </View>
-      ) : null}
-      <CustomInput
-        ref={costRef}
-        placeholder="Cost"
-        value={form.cost}
-        onChangeText={(text) => setForm({ ...form, cost: text })}
-        error={errors.cost}
-        returnKeyType="next"
-        onSubmitEditing={() => urlRef.current && urlRef.current.focus()}
-      />
-      <CustomInput
-        ref={urlRef}
-        placeholder="URL"
-        value={form.url}
-        onChangeText={(text) => setForm({ ...form, url: text })}
-        error={errors.url}
-        returnKeyType="next"
-        onSubmitEditing={() => descriptionRef.current && descriptionRef.current.focus()}
-      />
-      <CustomInput
-        ref={descriptionRef}
-        placeholder="Description"
-        value={form.description}
-        onChangeText={(text) => setForm({ ...form, description: text })}
-        error={errors.description}
-        returnKeyType="done"
-        onSubmitEditing={handleSubmit}
-      />
+    <ScrollView keyboardShouldPersistTaps="handled" scrollEnabled={!addressDropdownOpen}>
+      <FormWrapper>
+        <CustomInput
+          ref={nameRef}
+          placeholder="Name"
+          value={form.name}
+          onChangeText={(text) => setForm({ ...form, name: text })}
+          error={errors.name}
+          returnKeyType="next"
+        />
+        {/* ArcGIS Address Search */}
+        <ArcGISAddressSearch
+          onSelect={(item) => {
+            setForm((prev) => ({
+              ...prev,
+              location: item.address,
+              latitude: item.location?.y || null,
+              longitude: item.location?.x || null,
+            }));
+          }}
+          onDropdownOpen={setAddressDropdownOpen}
+        />
+        {/* Show selected location if available */}
+        {form.location ? (
+          <View style={{ marginBottom: 8 }}>
+            <Text style={{ fontSize: 14, color: "#333" }}>Selected: {form.location}</Text>
+          </View>
+        ) : null}
+        <CustomInput
+          ref={costRef}
+          placeholder="Cost"
+          value={form.cost}
+          onChangeText={(text) => setForm({ ...form, cost: text })}
+          error={errors.cost}
+          returnKeyType="next"
+          onSubmitEditing={() => urlRef.current && urlRef.current.focus()}
+        />
+        <CustomInput
+          ref={urlRef}
+          placeholder="URL"
+          value={form.url}
+          onChangeText={(text) => setForm({ ...form, url: text })}
+          error={errors.url}
+          returnKeyType="next"
+          onSubmitEditing={() => descriptionRef.current && descriptionRef.current.focus()}
+        />
+        <CustomInput
+          ref={descriptionRef}
+          placeholder="Description"
+          value={form.description}
+          onChangeText={(text) => setForm({ ...form, description: text })}
+          error={errors.description}
+          returnKeyType="done"
+          onSubmitEditing={handleSubmit}
+        />
 
-      <CustomButton title="Add Images" onPress={pickImage} color="#007AFF" />
-      {errors.images && <Text style={{ color: "#FF3B30", marginBottom: 10, marginLeft: 5, fontSize: 13 }}>{errors.images}</Text>}
-      <ScrollView
-        horizontal
-        style={{ marginBottom: 10 }}
-        onTouchStart={(e) => {
-          const { locationX, locationY } = e.nativeEvent;
-          if (locationY < 0 || locationX < 0) {
-            handleTapOutsideScrollView();
-          }
-        }}
-      >
-        {form.images.map((uri: string, index: number) => (
-          <TouchableOpacity key={index} onLongPress={handleLongPressImage} style={{ position: "relative" }}>
-            <Image
-              source={{ uri }}
-              style={{
-                width: showRemoveButtons ? 90 : 100,
-                height: showRemoveButtons ? 90 : 100,
-                marginRight: 10,
-                borderRadius: 5,
-              }}
-            />
-            {showRemoveButtons && (
-              <TouchableOpacity
-                onPress={() => handleRemoveImage(index)}
+        <CustomButton title="Add Images" onPress={pickImage} color="#007AFF" />
+        {errors.images && <Text style={{ color: "#FF3B30", marginBottom: 10, marginLeft: 5, fontSize: 13 }}>{errors.images}</Text>}
+        <ScrollView
+          horizontal
+          style={{ marginBottom: 10 }}
+          onTouchStart={(e) => {
+            const { locationX, locationY } = e.nativeEvent;
+            if (locationY < 0 || locationX < 0) {
+              handleTapOutsideScrollView();
+            }
+          }}
+        >
+          {form.images.map((uri: string, index: number) => (
+            <TouchableOpacity key={index} onLongPress={handleLongPressImage} style={{ position: "relative" }}>
+              <Image
+                source={{ uri }}
                 style={{
-                  position: "absolute",
-                  top: 5,
-                  right: 5,
-                  backgroundColor: "red",
-                  borderRadius: 15,
-                  padding: 5,
+                  width: showRemoveButtons ? 90 : 100,
+                  height: showRemoveButtons ? 90 : 100,
+                  marginRight: 10,
+                  borderRadius: 5,
                 }}
-              >
-                <Text style={{ color: "white", fontSize: 12 }}>X</Text>
-              </TouchableOpacity>
-            )}
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+              />
+              {showRemoveButtons && (
+                <TouchableOpacity
+                  onPress={() => handleRemoveImage(index)}
+                  style={{
+                    position: "absolute",
+                    top: 5,
+                    right: 5,
+                    backgroundColor: "red",
+                    borderRadius: 15,
+                    padding: 5,
+                  }}
+                >
+                  <Text style={{ color: "white", fontSize: 12 }}>X</Text>
+                </TouchableOpacity>
+              )}
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
 
-      <AvailabilitySelector
-        available_sun={form.available_sun}
-        available_mon={form.available_mon}
-        available_tue={form.available_tue}
-        available_wed={form.available_wed}
-        available_thu={form.available_thu}
-        available_fri={form.available_fri}
-        available_sat={form.available_sat}
-        onToggle={(day) => toggleAvailability(`available_${day}`)}
-      />
+        <AvailabilitySelector
+          available_sun={form.available_sun}
+          available_mon={form.available_mon}
+          available_tue={form.available_tue}
+          available_wed={form.available_wed}
+          available_thu={form.available_thu}
+          available_fri={form.available_fri}
+          available_sat={form.available_sat}
+          onToggle={(day) => toggleAvailability(`available_${day}`)}
+        />
 
-      <CustomButton title="Submit" onPress={handleSubmit} color="#007AFF" disabled={!isFormComplete} opacity={!isFormComplete ? 0.5 : 1} />
-    </FormWrapper>
+        <CustomButton title="Submit" onPress={handleSubmit} color="#007AFF" disabled={!isFormComplete} opacity={!isFormComplete ? 0.5 : 1} />
+      </FormWrapper>
+    </ScrollView>
   );
 }

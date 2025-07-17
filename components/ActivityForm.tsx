@@ -5,6 +5,7 @@ import CustomInput from "@/components/ui/CustomInput";
 import CustomButton from "@/components/ui/CustomButton";
 import AvailabilitySelector from "@/components/ui/AvailabilitySelector";
 import FormWrapper from "@/components/ui/FormWrapper";
+import ArcGISAddressSearch from "@/components/ArcGISAddressSearch";
 
 type ActivityFormProps = {
   initialData?: {
@@ -21,6 +22,9 @@ type ActivityFormProps = {
     available_thu?: boolean;
     available_fri?: boolean;
     available_sat?: boolean;
+    location?: string;
+    latitude?: number;
+    longitude?: number;
   };
   onSubmit: (form: any) => Promise<void>;
 };
@@ -40,6 +44,9 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
     available_thu: initialData?.available_thu || false,
     available_fri: initialData?.available_fri || false,
     available_sat: initialData?.available_sat || false,
+    location: initialData?.location || "",
+    latitude: initialData?.latitude || null,
+    longitude: initialData?.longitude || null,
   });
 
   const [showRemoveButtons, setShowRemoveButtons] = useState(false);
@@ -150,13 +157,28 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
         error={errors.name}
         returnKeyType="next"
       />
-      {/* Placeholder for location/address selector */}
-      <View style={{ marginBottom: 16 }}>
-        <Text style={{ fontSize: 16, fontWeight: "bold", marginBottom: 6 }}>Location (coming soon)</Text>
-        <Text style={{ color: "#888", fontSize: 13 }}>
-          A map/address picker will be added here in a future update. Currently, activities use device latitude/longitude.
-        </Text>
-      </View>
+      {/* ArcGIS Address Search */}
+      <ArcGISAddressSearch
+        onSelect={(item) => {
+          setForm((prev) => ({
+            ...prev,
+            location: item.address,
+            latitude: item.location?.y || null,
+            longitude: item.location?.x || null,
+          }));
+        }}
+      />
+      {/* Show selected location if available */}
+      {form.location ? (
+        <View style={{ marginBottom: 8 }}>
+          <Text style={{ fontSize: 14, color: "#333" }}>Selected: {form.location}</Text>
+          {form.latitude && form.longitude && (
+            <Text style={{ fontSize: 12, color: "#888" }}>
+              Lat: {form.latitude}, Lon: {form.longitude}
+            </Text>
+          )}
+        </View>
+      ) : null}
       <CustomInput
         ref={costRef}
         placeholder="Cost"

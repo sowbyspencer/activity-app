@@ -9,7 +9,6 @@ import { useRouter } from "expo-router";
 import { useAuth } from "@/context/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
-import Constants from "expo-constants";
 
 export default function LoginScreen() {
   const colorScheme = useColorScheme();
@@ -20,12 +19,6 @@ export default function LoginScreen() {
     password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
-
-  // Log ArcGIS API Key for testing
-  const arcgisKey = process.env.ARC_GIS_API_KEY || Constants.expoConfig?.extra?.arcgisApiKey || "NOT FOUND";
-  useEffect(() => {
-    console.log("ArcGIS API Key:", arcgisKey);
-  }, []);
 
   useFocusEffect(
     React.useCallback(() => {

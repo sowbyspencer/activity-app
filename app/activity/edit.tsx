@@ -30,9 +30,9 @@ export default function EditActivityScreen() {
     available_thu: boolean;
     available_fri: boolean;
     available_sat: boolean;
-    location?: string;
-    latitude?: number | null;
-    longitude?: number | null;
+    address: string;
+    latitude: number;
+    longitude: number;
   }) => {
     try {
       setProcessing(true);
@@ -52,10 +52,10 @@ export default function EditActivityScreen() {
       if (form.available_fri !== activity.available_fri) formData.append("available_fri", form.available_fri ? "true" : "false");
       if (form.available_sat !== activity.available_sat) formData.append("available_sat", form.available_sat ? "true" : "false");
       formData.append("user_id", userId ? String(userId) : "");
-      // Use only ArcGIS-selected location/lat/lon from form
-      if (form.location) formData.append("location", form.location);
-      if (form.latitude != null) formData.append("lat", String(form.latitude));
-      if (form.longitude != null) formData.append("lon", String(form.longitude));
+      // Only append address/lat/lon if changed
+      if (form.address !== activity.address) formData.append("address", form.address);
+      if (form.latitude !== activity.latitude) formData.append("lat", String(form.latitude));
+      if (form.longitude !== activity.longitude) formData.append("lon", String(form.longitude));
       // Handle images: only send new images as files, keep existing URLs as-is
       if (form.images && Array.isArray(form.images)) {
         form.images.forEach((img) => {
@@ -133,6 +133,7 @@ export default function EditActivityScreen() {
     available_thu: activity.available_thu === "true" || activity.available_thu === true || !!activity.available_thu,
     available_fri: activity.available_fri === "true" || activity.available_fri === true || !!activity.available_fri,
     available_sat: activity.available_sat === "true" || activity.available_sat === true || !!activity.available_sat,
+    address: activity.address || "", // ensure address is passed to ActivityForm
   };
 
   return (

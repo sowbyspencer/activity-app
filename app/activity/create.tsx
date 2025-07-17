@@ -24,6 +24,7 @@ export default function CreateActivityScreen() {
     available_thu: boolean;
     available_fri: boolean;
     available_sat: boolean;
+    address: string;
     latitude?: number;
     longitude?: number;
   }) => {
@@ -52,6 +53,8 @@ export default function CreateActivityScreen() {
       formData.append("available_fri", String(form.available_fri));
       formData.append("available_sat", String(form.available_sat));
 
+      // Append address if present
+      formData.append("address", form.address);
       // Append lat/lon if present
       formData.append("lat", String(form.latitude));
       formData.append("lon", String(form.longitude));

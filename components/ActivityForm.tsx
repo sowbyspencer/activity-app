@@ -22,9 +22,9 @@ type ActivityFormProps = {
     available_thu?: boolean;
     available_fri?: boolean;
     available_sat?: boolean;
-    location?: string;
-    latitude?: number;
-    longitude?: number;
+    address: string;
+    latitude: number;
+    longitude: number;
   };
   onSubmit: (form: any) => Promise<void>;
 };
@@ -35,7 +35,7 @@ type ErrorState = {
   url?: string;
   description?: string;
   images?: string;
-  location?: string;
+  address?: string;
 };
 
 export default function ActivityForm({ initialData, onSubmit }: ActivityFormProps) {
@@ -53,13 +53,14 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
     available_thu: initialData?.available_thu || false,
     available_fri: initialData?.available_fri || false,
     available_sat: initialData?.available_sat || false,
-    location: initialData?.location || "",
-    latitude: initialData?.latitude || null,
-    longitude: initialData?.longitude || null,
+    address: initialData?.address || "",
+    latitude: initialData?.latitude ?? null,
+    longitude: initialData?.longitude ?? null,
   });
 
   const [showRemoveButtons, setShowRemoveButtons] = useState(false);
   const [errors, setErrors] = useState<ErrorState>({});
+  const [addressSelected, setAddressSelected] = useState(!!initialData?.address);
 
   // Refs for input focus
   const nameRef = useRef<any>(null);
@@ -87,9 +88,10 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
     if (!form.images || form.images.length === 0) {
       newErrors.images = "Please add at least one image.";
     }
-    // Require valid address/location
-    if (!form.location || !form.location.trim() || form.latitude == null || form.longitude == null) {
-      newErrors.location = "Please select a valid address.";
+    // Require valid address
+    // Allow submit if address, latitude, and longitude are present (even if not reselected)
+    if (!form.address || !form.address.trim() || form.latitude == null || form.longitude == null) {
+      newErrors.address = "Please select a valid address.";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -159,8 +161,8 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
       })()) &&
     form.images &&
     form.images.length > 0 &&
-    form.location &&
-    form.location.trim() &&
+    form.address &&
+    form.address.trim() &&
     form.latitude != null &&
     form.longitude != null;
 
@@ -183,13 +185,16 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
       key: "address",
       render: () => (
         <ArcGISAddressSearch
+          value={form.address}
+          selected={addressSelected}
           onSelect={(item) => {
             setForm((prev) => ({
               ...prev,
-              location: item.address,
+              address: item.address,
               latitude: item.location?.y || null,
               longitude: item.location?.x || null,
             }));
+            setAddressSelected(true);
           }}
         />
       ),
@@ -307,7 +312,7 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
     {
       key: "addressError",
       render: () =>
-        errors.location ? <Text style={{ color: "#FF3B30", marginBottom: 10, marginLeft: 5, fontSize: 13 }}>{errors.location}</Text> : null,
+        errors.address ? <Text style={{ color: "#FF3B30", marginBottom: 10, marginLeft: 5, fontSize: 13 }}>{errors.address}</Text> : null,
     },
   ];
 

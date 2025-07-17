@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, TextInput, FlatList, Text, TouchableOpacity, ActivityIndicator, useColorScheme } from "react-native";
 import Constants from "expo-constants";
 import { useLocationContext } from "@/context/LocationContext";
@@ -8,18 +8,22 @@ export default function ArcGISAddressSearch({
   style,
   showResults = true,
   onDropdownOpen,
+  value,
+  selected,
 }: {
   onSelect: (result: any) => void;
   style?: any;
   showResults?: boolean;
   onDropdownOpen?: (open: boolean) => void;
+  value?: string;
+  selected?: boolean;
 }) {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(value || "");
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dropdownVisible, setDropdownVisible] = useState(false);
-  const [selected, setSelected] = useState(false);
+  const [selectedState, setSelectedState] = useState(false);
   const colorScheme = useColorScheme();
   const { coords } = useLocationContext();
 
@@ -71,12 +75,23 @@ export default function ArcGISAddressSearch({
     setQuery(item.address);
     setResults([]);
     setDropdownVisible(false);
-    setSelected(true);
+    setSelectedState(true);
     if (onDropdownOpen) onDropdownOpen(false);
     onSelect(item);
   };
 
   const isDark = colorScheme === "dark";
+
+  // Use selected prop if provided, otherwise use internal state
+  const isSelected = selected !== undefined ? selected : selectedState;
+
+  // Keep query in sync with value prop
+  useEffect(() => {
+    if (typeof value === "string" && value !== query) {
+      setQuery(value);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
 
   return (
     <View
@@ -86,7 +101,7 @@ export default function ArcGISAddressSearch({
       }}
     >
       <TextInput
-        placeholder="Location"
+        placeholder="Address or place"
         placeholderTextColor={isDark ? "#aaa" : "#666"}
         value={query}
         onChangeText={searchAddress}
@@ -94,8 +109,8 @@ export default function ArcGISAddressSearch({
           {
             width: "100%",
             height: 50,
-            borderWidth: selected ? 2 : 1,
-            borderColor: selected ? "#3CB371" : "#ccc",
+            borderWidth: isSelected ? 2 : 1,
+            borderColor: isSelected ? "#3CB371" : "#ccc",
             borderRadius: 10,
             paddingHorizontal: 10,
             marginBottom: 15,

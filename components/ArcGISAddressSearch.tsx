@@ -19,6 +19,7 @@ export default function ArcGISAddressSearch({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dropdownVisible, setDropdownVisible] = useState(false);
+  const [selected, setSelected] = useState(false);
   const colorScheme = useColorScheme();
   const { coords } = useLocationContext();
 
@@ -55,6 +56,10 @@ export default function ArcGISAddressSearch({
         return;
       }
       setResults(data.candidates || []);
+      console.log(
+        "[ArcGIS] Candidates:",
+        (data.candidates || []).map((c: any) => c.address)
+      );
       const open = (data.candidates || []).length > 0;
       setDropdownVisible(open);
       if (onDropdownOpen) onDropdownOpen(open);
@@ -71,6 +76,7 @@ export default function ArcGISAddressSearch({
     setQuery(item.address);
     setResults([]);
     setDropdownVisible(false);
+    setSelected(true);
     if (onDropdownOpen) onDropdownOpen(false);
     onSelect(item);
   };
@@ -79,7 +85,7 @@ export default function ArcGISAddressSearch({
 
   return (
     <View
-      style={[{ marginBottom: 0, position: "relative" }, style]}
+      style={[{ marginBottom: 0, position: "relative", borderColor: "transparent", borderWidth: 0 }]}
       onLayout={(e) => {
         setLayout(e.nativeEvent.layout);
       }}
@@ -89,17 +95,20 @@ export default function ArcGISAddressSearch({
         placeholderTextColor={isDark ? "#aaa" : "#666"}
         value={query}
         onChangeText={searchAddress}
-        style={{
-          width: "100%",
-          height: 50,
-          borderWidth: 1,
-          borderColor: "#ccc",
-          borderRadius: 10,
-          paddingHorizontal: 10,
-          marginBottom: 15,
-          color: isDark ? "#fff" : "#000",
-          backgroundColor: isDark ? "#222" : "#f9f9f9",
-        }}
+        style={[
+          {
+            width: "100%",
+            height: 50,
+            borderWidth: selected ? 2 : 1,
+            borderColor: selected ? "#3CB371" : "#ccc",
+            borderRadius: 10,
+            paddingHorizontal: 10,
+            marginBottom: 15,
+            color: isDark ? "#fff" : "#000",
+            backgroundColor: isDark ? "#222" : "#f9f9f9",
+          },
+          style,
+        ]}
         onFocus={() => {
           if (results.length > 0) {
             setDropdownVisible(true);
@@ -113,7 +122,7 @@ export default function ArcGISAddressSearch({
           }, 200)
         }
       />
-      {loading && <ActivityIndicator size="small" color="#007AFF" style={{ marginBottom: 8 }} />}
+      {/* {loading && <ActivityIndicator size="small" color="#007AFF" style={{ marginBottom: 8 }} />} */}
       {error && <Text style={{ color: "#FF3B30", marginBottom: 8 }}>{error}</Text>}
       {dropdownVisible && (
         <View
@@ -145,11 +154,6 @@ export default function ArcGISAddressSearch({
                 style={{ paddingVertical: 10, paddingHorizontal: 12, borderBottomWidth: 1, borderBottomColor: isDark ? "#333" : "#eee" }}
               >
                 <Text style={{ fontSize: 15, color: isDark ? "#fff" : "#222" }}>{item.address}</Text>
-                {item.location && (
-                  <Text style={{ fontSize: 12, color: isDark ? "#aaa" : "#888" }}>
-                    Lat: {item.location.y}, Lon: {item.location.x}
-                  </Text>
-                )}
               </TouchableOpacity>
             )}
             keyboardShouldPersistTaps="handled"

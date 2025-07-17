@@ -187,15 +187,6 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
       ),
     },
     {
-      key: "selectedLocation",
-      render: () =>
-        form.location ? (
-          <View style={{ marginBottom: 8 }}>
-            <Text style={{ fontSize: 14, color: "#333" }}>Selected: {form.location}</Text>
-          </View>
-        ) : null,
-    },
-    {
       key: "cost",
       render: () => (
         <CustomInput

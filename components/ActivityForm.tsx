@@ -6,6 +6,7 @@ import CustomButton from "@/components/ui/CustomButton";
 import AvailabilitySelector from "@/components/ui/AvailabilitySelector";
 import FormWrapper from "@/components/ui/FormWrapper";
 import ArcGISAddressSearch from "@/components/ArcGISAddressSearch";
+import Constants from "expo-constants";
 
 type ActivityFormProps = {
   initialData?: {
@@ -58,8 +59,6 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
   const urlRef = useRef<any>(null);
   const descriptionRef = useRef<any>(null);
 
-  // Remove GIS validation logic
-
   // On mount, if editing and address is pre-filled, trust DB values
   useEffect(() => {
     if (initialData?.address && initialData.latitude != null && initialData.longitude != null) {
@@ -72,8 +71,28 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
     }
   }, []);
 
+  // Helper to validate address with ArcGIS geoservice
+  const validateAddressWithGIS = async (address: string, latitude: number | null, longitude: number | null) => {
+    if (!address || latitude == null || longitude == null) return false;
+    try {
+      const arcgisKey = Constants.expoConfig?.extra?.arcgisApiKey;
+      const url = `https://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?f=json&singleLine=${encodeURIComponent(
+        address
+      )}&location=${longitude},${latitude}&outFields=Match_addr,geometry&token=${arcgisKey}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.candidates && data.candidates.length > 0) {
+        // Accept if any candidate matches the address closely (score > 90)
+        return data.candidates[0].score > 90;
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  };
+
   // Remove address validation from validate()
-  const validate = () => {
+  const validate = async () => {
     const newErrors: any = {};
     if (!form.name.trim()) newErrors.name = "Name is required.";
     // Cost: allow empty, 'free', or 'none' (case-insensitive) as null
@@ -93,12 +112,18 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
     if (!form.images || form.images.length === 0) {
       newErrors.images = "Please add at least one image.";
     }
+    // Address validation: require GIS validation
+    const addressValid = await validateAddressWithGIS(form.address, form.latitude, form.longitude);
+    if (!form.address || !form.address.trim() || form.latitude == null || form.longitude == null || !addressValid) {
+      newErrors.address = "Please select a valid address (validated by GIS).";
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async () => {
-    if (!validate()) return;
+    const valid = await validate();
+    if (!valid) return;
     // Normalize cost
     let cost = form.cost;
     if (form.has_cost && (/^(free|none)$/i.test(cost.trim()) || cost.trim() === "")) cost = "";
@@ -192,6 +217,7 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
               }))
             }
           />
+          {errors.address && <Text style={{ color: "#FF3B30", marginTop: 4, marginLeft: 5, fontSize: 13 }}>{errors.address}</Text>}
         </View>
       ),
     },

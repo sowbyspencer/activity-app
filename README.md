@@ -138,5 +138,8 @@ Join our community of developers creating universal apps.
 - Activities now require latitude and longitude (lat/lon) for creation and editing.
 - The legacy `location` string field is deprecated and will be removed from the database and API.
 - Activity discovery and filtering uses device location (lat/lon) and a user-selected radius (in km).
-- Planned: Map/address picker for activity creation/editing.
+- The address field in ActivityForm is now fully controlled: it updates the form state on every keystroke and clears latitude/longitude until a GIS-validated suggestion is selected.
+- The ArcGIS address search component supports real-time input and validation, and notifies the parent form of every input change.
+- The form only allows submission if the address is unchanged from the original or has been GIS-validated after any change.
+- The activity info page always displays the address first, then latitude/longitude, and shows "null" if any of those values are missing.
 - All relevant API requests and responses now use lat/lon and radius for location-based logic.

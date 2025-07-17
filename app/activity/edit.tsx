@@ -31,8 +31,8 @@ export default function EditActivityScreen() {
     available_fri: boolean;
     available_sat: boolean;
     address: string;
-    latitude: number;
-    longitude: number;
+    latitude?: number;
+    longitude?: number;
   }) => {
     try {
       setProcessing(true);
@@ -54,8 +54,8 @@ export default function EditActivityScreen() {
       formData.append("user_id", userId ? String(userId) : "");
       // Only append address/lat/lon if changed
       if (form.address !== activity.address) formData.append("address", form.address);
-      if (form.latitude !== activity.latitude) formData.append("lat", String(form.latitude));
-      if (form.longitude !== activity.longitude) formData.append("lon", String(form.longitude));
+      if (form.latitude !== activity.latitude) formData.append("lat", String(form.latitude ?? ""));
+      if (form.longitude !== activity.longitude) formData.append("lon", String(form.longitude ?? ""));
       // Handle images: only send new images as files, keep existing URLs as-is
       if (form.images && Array.isArray(form.images)) {
         form.images.forEach((img) => {

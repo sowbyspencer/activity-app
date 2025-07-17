@@ -51,8 +51,6 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
 
   const [showRemoveButtons, setShowRemoveButtons] = useState(false);
   const [errors, setErrors] = useState<ErrorState>({});
-  const [addressSelected, setAddressSelected] = useState(!!initialData?.address);
-  const [addressFocused, setAddressFocused] = useState(false);
 
   // Refs for input focus
   const nameRef = useRef<any>(null);
@@ -60,20 +58,21 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
   const urlRef = useRef<any>(null);
   const descriptionRef = useRef<any>(null);
 
-  useEffect(() => {
-    if (form.address && form.address.trim() && form.latitude != null && form.longitude != null) {
-      setAddressSelected(true);
-    }
-  }, []); // Run once on mount
+  // Remove GIS validation logic
 
-  // Real-time address validation only when editing
+  // On mount, if editing and address is pre-filled, trust DB values
   useEffect(() => {
-    if (addressFocused) {
-      validate();
+    if (initialData?.address && initialData.latitude != null && initialData.longitude != null) {
+      setForm((prev) => ({
+        ...prev,
+        address: initialData.address,
+        latitude: initialData.latitude,
+        longitude: initialData.longitude,
+      }));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.address, form.latitude, form.longitude, addressFocused]);
+  }, []);
 
+  // Remove address validation from validate()
   const validate = () => {
     const newErrors: any = {};
     if (!form.name.trim()) newErrors.name = "Name is required.";
@@ -93,11 +92,6 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
     // Require at least one image
     if (!form.images || form.images.length === 0) {
       newErrors.images = "Please add at least one image.";
-    }
-    // Require valid address
-    // Allow submit if address, latitude, and longitude are present (even if not reselected)
-    if (!form.address || !form.address.trim() || form.latitude == null || form.longitude == null) {
-      newErrors.address = "Please select a valid address.";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -166,18 +160,7 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
     })();
 
   // Determine if all required fields are filled (for disabling Submit)
-  const isFormComplete = Boolean(
-    form.name.trim() &&
-      form.description.trim() &&
-      isCostValid &&
-      isUrlValid &&
-      form.images &&
-      form.images.length > 0 &&
-      form.address &&
-      form.address.trim() &&
-      form.latitude != null &&
-      form.longitude != null
-  );
+  const isFormComplete = Boolean(form.name.trim() && form.description.trim() && isCostValid && isUrlValid && form.images && form.images.length > 0);
 
   // Compose form fields as items for FlatList
   const formItems = [
@@ -200,23 +183,14 @@ export default function ActivityForm({ initialData, onSubmit }: ActivityFormProp
         <View style={{ marginBottom: 10 }}>
           <ArcGISAddressSearch
             value={form.address}
-            selected={addressSelected}
-            error={!!errors.address}
-            onSelect={(item) => {
+            onSelect={(item) =>
               setForm((prev) => ({
                 ...prev,
                 address: item.address,
                 latitude: item.location?.y || null,
                 longitude: item.location?.x || null,
-              }));
-              setAddressSelected(true);
-              if (addressFocused) validate();
-            }}
-            onFocus={() => setAddressFocused(true)}
-            onBlur={() => {
-              setAddressFocused(false);
-              validate();
-            }}
+              }))
+            }
           />
         </View>
       ),

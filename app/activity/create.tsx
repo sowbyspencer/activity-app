@@ -56,8 +56,8 @@ export default function CreateActivityScreen() {
       // Append address if present
       formData.append("address", form.address);
       // Append lat/lon if present
-      formData.append("lat", String(form.latitude));
-      formData.append("lon", String(form.longitude));
+      formData.append("lat", String(form.latitude ?? ""));
+      formData.append("lon", String(form.longitude ?? ""));
 
       form.images.forEach((imageUri: string, index: number) => {
         const imageFile = {

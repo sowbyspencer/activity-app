@@ -10,7 +10,7 @@ export default function ArcGISAddressSearch({
   onDropdownOpen,
   value,
   selected,
-  error, // <-- already added
+  error, // <-- already added, but will not be used for validation
   onFocus,
   onBlur,
 }: {
@@ -91,15 +91,11 @@ export default function ArcGISAddressSearch({
   // Use selected prop if provided, otherwise use internal state
   const isSelected = selected !== undefined ? selected : selectedState;
 
-  // Determine border color and error visibility
+  // Remove error and validation feedback
+  // Only show border color for selection, not for error
   let borderColor = "#ccc";
   let borderWidth = 1;
-  let showError = false;
-  if (error) {
-    borderColor = "#FF3B30";
-    borderWidth = 1.5;
-    showError = true;
-  } else if (isSelected && query && query.trim()) {
+  if (isSelected && query && query.trim()) {
     borderColor = "#3CB371";
     borderWidth = 2;
   }
@@ -170,8 +166,6 @@ export default function ArcGISAddressSearch({
           if (onBlur) onBlur();
         }}
       />
-      {showError && <Text style={{ color: "#FF3B30", marginBottom: 10, marginLeft: 5, fontSize: 13 }}>Please select a valid address.</Text>}
-      {/* {loading && <ActivityIndicator size="small" color="#007AFF" style={{ marginBottom: 8 }} />} */}
       {errorState && <Text style={{ color: "#FF3B30", marginBottom: 8 }}>{errorState}</Text>}
       {dropdownVisible && (
         <View

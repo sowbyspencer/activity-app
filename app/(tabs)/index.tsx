@@ -94,13 +94,22 @@ export default function ActivitySwiper() {
         const data = await fetchActivities(userId, { coords: loc }, effectiveRadius);
         // Remove activities not in the new fetch
         setActivities((prev) => {
-          const newIds = new Set(data.map((a) => a.id));
-          // Keep only activities in both prev and new fetch
-          const filteredPrev = prev.filter((a) => newIds.has(a.id));
+          const newIds = new Set(data.map((a: Activity) => a.id));
+          // Replace activities if their data has changed, keep unchanged otherwise
+          const updatedPrev = prev.map((a: Activity) => {
+            const updated = data.find((d: Activity) => d.id === a.id);
+            if (updated) {
+              // Compare fields, replace if changed
+              if (JSON.stringify(a) !== JSON.stringify(updated)) {
+                return updated;
+              }
+            }
+            return a;
+          });
           // Add new activities not already in prev
-          const existingIds = new Set(filteredPrev.map((a) => a.id));
-          const uniqueNew = data.filter((a) => !existingIds.has(a.id));
-          return [...filteredPrev, ...uniqueNew];
+          const existingIds = new Set(updatedPrev.map((a: Activity) => a.id));
+          const uniqueNew = data.filter((a: Activity) => !existingIds.has(a.id));
+          return [...updatedPrev, ...uniqueNew];
         });
         setLastFetchedLocation(loc);
       });

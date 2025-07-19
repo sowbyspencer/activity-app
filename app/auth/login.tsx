@@ -53,7 +53,7 @@ export default function LoginScreen() {
       if (response.ok) {
         const data = await response.json();
         console.log("Login response data:", data); // Log the full response
-        setUserId(data.user_id); // Use the correct property from your API
+        setUserId(data.user?.id); // Use the correct property from your API response
         Alert.alert("Login successful!", "Navigating to the main app.");
         router.push("/(tabs)");
       } else {
